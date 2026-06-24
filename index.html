@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en" data-kp-root data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klinik Penyesalan · Where conviction meets the order book.</title>
+<meta name="description" content="A community for Indonesian retail traders who'd rather read the data than chase tips. Free tools for broker flow, IPO demand, real ownership, and free float, plus a Discord that argues about all of it.">
+<link rel="canonical" href="https://klinikpenyesalan.com/">
+<meta name="theme-color" content="#13171b">
+
+<!-- Favicons (your logo) -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="256x256" href="assets/favicon-256.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<!-- Social / Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://klinikpenyesalan.com/">
+<meta property="og:title" content="Klinik Penyesalan · Where conviction meets the order book.">
+<meta property="og:description" content="A community for Indonesian retail traders who'd rather read the data than chase tips. Free tools for broker flow, IPO demand, real ownership, and free float.">
+<meta property="og:image" content="assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Klinik Penyesalan · Where conviction meets the order book.">
+<meta name="twitter:description" content="Free tools for Indonesian retail traders who'd rather read the data than chase tips. Broker flow, IPO demand, real ownership, free float, plus a Discord that argues about all of it.">
+<meta name="twitter:image" content="assets/og-image.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;scroll-behavior:smooth;}
+
+  [data-kp-root]{
+    --bg:#13171b; --surface:#181d23; --surface-2:#1e242b;
+    --bg-trans:rgba(19,23,27,.78);
+    --line:rgba(232,237,240,.10); --line-2:rgba(232,237,240,.20);
+    --text:#e9ecef; --dim:#9aa3ab; --mute:#626c74;
+    --accent:#3bbcb4; --accent-dim:#1f7d77; --on-accent:#06130f;
+    --logo-light:#d8d8d8; --logo-teal:#33b2ab; --glow:rgba(59,188,180,.16);
+    --elev:0 18px 46px -26px rgba(0,0,0,.62); --elev-hi:0 28px 64px -28px rgba(0,0,0,.72);
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+    --sans:"Space Grotesk",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  [data-kp-root][data-theme="light"]{
+    --bg:#eeece6; --surface:#f8f6f2; --surface-2:#ffffff;
+    --bg-trans:rgba(238,236,230,.78);
+    --line:rgba(20,24,28,.11); --line-2:rgba(20,24,28,.22);
+    --text:#171b1f; --dim:#566069; --mute:#8a929a;
+    --accent:#0e7d76; --accent-dim:#34b3ac; --on-accent:#ffffff;
+    --logo-light:#2b3138; --glow:rgba(14,125,118,.12);
+    --elev:0 16px 40px -28px rgba(20,24,28,.30); --elev-hi:0 26px 56px -28px rgba(20,24,28,.34);
+  }
+
+  html[data-kp-root]{background:var(--bg);}
+  body{
+    min-height:100vh; background:var(--bg); color:var(--text);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  [data-kp-root] *{transition:background-color .3s ease,color .3s ease,border-color .3s ease,box-shadow .3s ease,transform .25s ease;}
+  ::selection{background:var(--accent);color:var(--on-accent);}
+  a{color:inherit;}
+
+  @keyframes kp-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes kp-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+  /* ---- logo mark (the exact ascending-bars mark, theme-aware) ---- */
+  .kp-logo{display:block;width:auto;}
+  .kp-logo .bar-accent{fill:var(--logo-teal);}
+  .kp-logo .bar-light{fill:var(--logo-light);}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 32px;}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:11px;font-family:var(--mono);
+    font-size:11px;letter-spacing:.16em;color:var(--dim);}
+  .eyebrow::before{content:"";width:7px;height:7px;background:var(--accent);display:inline-block;flex:none;}
+
+  /* ---- buttons ---- */
+  .btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:600;
+    letter-spacing:.1em;text-decoration:none;cursor:pointer;border:0;line-height:1;white-space:nowrap;}
+  .btn--primary{color:var(--on-accent);background:var(--accent);box-shadow:0 14px 34px -14px var(--accent);}
+  .btn--primary:hover{transform:translateY(-2px);box-shadow:0 20px 44px -14px var(--accent);}
+  .btn--ghost{color:var(--text);background:transparent;border:1px solid var(--line-2);}
+  .btn--ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* ---- header ---- */
+  header.site{position:sticky;top:0;z-index:60;background:var(--bg-trans);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+  .header-inner{height:70px;display:flex;align-items:center;justify-content:space-between;gap:24px;}
+  .brand{display:flex;align-items:center;gap:13px;text-decoration:none;color:inherit;}
+  .brand .name{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.14em;}
+  nav.main{display:flex;align-items:center;gap:4px;}
+  .nav-link{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--dim);
+    text-decoration:none;padding:9px 15px;}
+  .nav-link:hover{color:var(--text);}
+  .toggle{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--dim);
+    background:transparent;border:1px solid var(--line);padding:10px 14px;margin-left:8px;cursor:pointer;
+    display:flex;align-items:center;gap:8px;}
+  .toggle:hover{color:var(--text);border-color:var(--line-2);}
+  .toggle .dot{width:8px;height:8px;background:var(--accent);display:inline-block;}
+
+  /* ---- ticker ---- */
+  .ticker{overflow:hidden;border-bottom:1px solid var(--line);background:var(--surface);
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);}
+  .ticker-track{display:flex;width:max-content;animation:kp-ticker 44s linear infinite;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--mute);white-space:nowrap;}
+  .ticker-group{display:flex;}
+  .ticker-group span{padding:10px 30px;}
+  .ticker-group .up{color:var(--accent);}
+
+  /* ---- hero ---- */
+  .hero{position:relative;overflow:hidden;}
+  .hero-glow{position:absolute;top:-8%;right:-6%;width:680px;height:680px;
+    background:radial-gradient(circle,var(--glow) 0%,transparent 62%);pointer-events:none;z-index:0;}
+  .hero-grid{position:relative;z-index:1;padding:100px 32px 110px;display:grid;
+    grid-template-columns:1.04fr .96fr;gap:72px;align-items:center;}
+  .hero h1{font-size:clamp(44px,5.2vw,76px);line-height:1;font-weight:500;letter-spacing:-.025em;
+    margin:0 0 30px;text-wrap:balance;}
+  .hero h1 .accent{color:var(--accent);}
+  .hero .lede{font-size:19px;line-height:1.62;color:var(--dim);max-width:31em;margin:0 0 16px;font-weight:300;}
+  .hero .mono-note{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--mute);margin:0 0 42px;}
+  .hero .cta{display:flex;gap:14px;flex-wrap:wrap;}
+  .hero .cta .btn{padding:17px 28px;font-size:12px;}
+
+  /* ---- terminal card ---- */
+  .terminal{width:100%;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--elev);}
+  .terminal-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);
+    padding:14px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);}
+  .terminal-head .live{display:flex;align-items:center;gap:7px;}
+  .terminal-head .live .dot{width:7px;height:7px;background:var(--accent);display:inline-block;animation:kp-blink 1.6s steps(1) infinite;}
+  .terminal-body{padding:38px 28px 24px;}
+  .terminal-logo{display:flex;justify-content:center;margin-bottom:36px;}
+  .app-row{display:flex;align-items:center;justify-content:space-between;padding:14px 8px;
+    border-top:1px solid var(--line);text-decoration:none;color:inherit;font-family:var(--mono);}
+  .app-row:last-of-type{border-bottom:1px solid var(--line);}
+  .app-row:hover{background:var(--surface-2);}
+  .app-row .tag{font-size:11px;letter-spacing:.1em;color:var(--mute);width:54px;}
+  .app-row .label{font-family:var(--sans);font-size:16px;font-weight:500;flex:1;}
+  .app-row .arr{color:var(--accent);}
+  .terminal-prompt{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:20px;letter-spacing:.06em;}
+  .terminal-prompt .caret{animation:kp-blink 1.2s steps(1) infinite;}
+
+  /* ---- apps section ---- */
+  .section{border-top:1px solid var(--line);}
+  .section-inner{padding:92px 32px 100px;}
+  .apps-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;flex-wrap:wrap;margin-bottom:52px;}
+  .apps-head h2{font-size:clamp(34px,3.8vw,50px);font-weight:500;letter-spacing:-.02em;margin:22px 0 0;}
+  .apps-head .intro{font-size:16px;line-height:1.6;color:var(--dim);max-width:30em;margin:0;font-weight:300;}
+  .apps-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;}
+
+  .tool-card{display:flex;flex-direction:column;border:1px solid var(--line);background:var(--surface);
+    box-shadow:var(--elev);text-decoration:none;color:inherit;}
+  .tool-card:hover{transform:translateY(-4px);border-color:var(--line-2);box-shadow:var(--elev-hi);}
+  .tool-viz{height:196px;border-bottom:1px solid var(--line);background:var(--bg);padding:24px;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:space-between;}
+  .tool-viz .viz-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);
+    font-size:10px;letter-spacing:.12em;color:var(--mute);}
+  .tool-body{padding:26px;display:flex;flex-direction:column;gap:13px;flex:1;}
+  .tool-body .row1{display:flex;align-items:baseline;gap:13px;}
+  .tool-body .num{font-family:var(--mono);font-size:12px;color:var(--accent);}
+  .tool-body h3{font-size:24px;font-weight:500;letter-spacing:-.01em;margin:0;}
+  .tool-body p{font-size:15px;line-height:1.56;color:var(--dim);margin:0;font-weight:300;flex:1;}
+  .tool-body .foot{display:flex;justify-content:space-between;align-items:center;padding-top:14px;
+    border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.04em;}
+  .tool-body .foot .url{color:var(--mute);}
+  .tool-body .foot .open{color:var(--accent);font-weight:600;}
+
+  .bars{display:flex;align-items:flex-end;gap:5px;height:64px;border-bottom:1px solid var(--line);}
+  .bars span{width:7px;}
+  .meter-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--dim);}
+  .meter{flex:1;background:var(--line);}
+  .meter > span{display:block;background:var(--accent);}
+
+  /* ---- community ---- */
+  .floor-grid{border:1px solid var(--line);background:var(--surface);box-shadow:var(--elev);
+    display:grid;grid-template-columns:1.2fr .8fr;overflow:hidden;}
+  .floor-main{padding:56px 52px;position:relative;overflow:hidden;}
+  .floor-glow{position:absolute;top:-30%;left:-10%;width:420px;height:420px;
+    background:radial-gradient(circle,var(--glow) 0%,transparent 64%);pointer-events:none;}
+  .floor-main h2{font-size:clamp(34px,4vw,54px);font-weight:500;letter-spacing:-.02em;margin:0 0 22px;line-height:1.02;}
+  .floor-main h2 .accent{color:var(--accent);}
+  .floor-main p{font-size:18px;line-height:1.6;color:var(--dim);max-width:30em;margin:0 0 38px;font-weight:300;}
+  .floor-main .btn{padding:18px 30px;font-size:13px;}
+  .floor-social{display:flex;flex-direction:column;border-left:1px solid var(--line);}
+  .social-cell{flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px;padding:40px 44px;
+    text-decoration:none;color:inherit;}
+  .social-cell + .social-cell{border-top:1px solid var(--line);}
+  .social-cell:hover{background:var(--surface-2);}
+  .social-cell .top{display:flex;justify-content:space-between;align-items:center;}
+  .social-cell .top .k{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--mute);}
+  .social-cell .top .arr{color:var(--accent);font-size:18px;}
+  .social-cell .handle{font-family:var(--sans);font-size:25px;font-weight:500;}
+
+  /* ---- footer ---- */
+  footer.site{border-top:1px solid var(--line);}
+  .footer-inner{padding:40px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+  .footer-brand{display:flex;align-items:center;gap:13px;}
+  .footer-brand .copy{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);}
+  .footer-links{display:flex;gap:24px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;}
+  .footer-links a{color:var(--mute);text-decoration:none;}
+  .footer-links a:hover{color:var(--text);}
+
+  /* ---- responsive ---- */
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr;gap:48px;padding:72px 0 84px;}
+    .apps-grid{grid-template-columns:1fr;}
+    .floor-grid{grid-template-columns:1fr;}
+    .floor-social{flex-direction:row;border-left:0;border-top:1px solid var(--line);}
+    .social-cell + .social-cell{border-top:0;border-left:1px solid var(--line);}
+  }
+  @media (max-width:620px){
+    .wrap{padding:0 20px;}
+    .hero-grid,.section-inner,.header-inner,.footer-inner{padding-left:0;padding-right:0;}
+    .wrap.header-inner,.wrap.footer-inner{padding:0 20px;}
+    nav.main .nav-link{display:none;}
+    .floor-main{padding:40px 28px;}
+    .social-cell{padding:28px;}
+    .floor-social{flex-direction:column;}
+    .social-cell + .social-cell{border-top:1px solid var(--line);border-left:0;}
+    .header-inner{height:62px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .ticker-track,.terminal-head .live .dot,.terminal-prompt .caret{animation:none;}
+    [data-kp-root] *{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- reusable logo mark: defined once, used everywhere -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="kp-mark" viewBox="0 0 600 499">
+    <g transform="translate(0,499) scale(0.1,-0.1)">
+      <g fill="#33b2ab">
+        <path d="M2467 4740 l-307 -230 0 -1779 0 -1779 14 -11 13 -11 293 130 294
+131 13 10 13 11 0 1868 0 1868 -13 10 -13 11 -307 -229z"/>
+        <path d="M1380 3627 l-295 -222 -3 -1466 -2 -1466 12 -11 13 -10 285 125 285
+125 18 15 17 16 0 1547 0 1546 -12 12 -12 12 -5 -1 -6 -1 -295 -221z"/>
+        <path d="M302 2617 l-293 -222 0 -1180 1 -1180 13 -13 13 -13 285 122 284 122
+12 10 13 9 0 1272 0 1272 -12 12 -12 12 -5 -1 -6 0 -293 -222z"/>
+      </g>
+      <g style="fill:var(--logo-light)">
+        <path d="M3242 4957 l-11 -13 -7 -1859 -7 -1860 19 -17 20 -17 289 -129 290
+-130 12 12 11 11 4 1777 3 1777 -15 15 -15 14 -280 207 -280 208 -11 8 -11 9
+-11 -13z"/>
+        <path d="M4332 3838 l-12 -12 0 -1546 0 -1547 18 -16 17 -15 278 -122 277
+-122 15 12 15 12 0 1462 0 1462 -280 210 -280 209 -18 12 -18 13 -12 -12z"/>
+        <path d="M5382 2838 l-12 -12 0 -1272 0 -1272 16 -13 16 -13 282 -122 281
+-122 13 10 12 10 0 1188 0 1188 -295 221 -296 221 -2 0 -3 0 -12 -12z"/>
+      </g>
+    </g>
+  </symbol>
+</svg>
+
+<header class="site">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top">
+      <svg class="kp-logo" style="height:24px" viewBox="0 0 600 499" role="img" aria-label="Klinik Penyesalan"><use href="#kp-mark"/></svg>
+      <span class="name">KLINIK&nbsp;PENYESALAN</span>
+    </a>
+    <nav class="main">
+      <a class="nav-link" href="#apps">TOOLS</a>
+      <a class="nav-link" href="#community">COMMUNITY</a>
+      <button class="toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
+        <span class="dot"></span><span class="toggle-label">LIGHT</span>
+      </button>
+      <a class="btn btn--primary" style="padding:12px 18px;font-size:11px;margin-left:4px" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">JOIN DISCORD →</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ticker -->
+<div class="ticker">
+  <div class="ticker-track">
+    <div class="ticker-group">
+      <span><span class="up">▲</span>&nbsp; STOCK TRANSACTION ANALYSIS</span>
+      <span><span class="up">▲</span>&nbsp; IPO ANALYTICS</span>
+      <span><span class="up">▲</span>&nbsp; 1% SHAREHOLDERS DATA</span>
+      <span><span class="up">▲</span>&nbsp; FREE-FLOAT DATA</span>
+      <span>IDX · JAKARTA</span>
+      <span><span class="up">▲</span>&nbsp; JOIN THE DISCORD</span>
+    </div>
+    <div class="ticker-group" aria-hidden="true">
+      <span><span class="up">▲</span>&nbsp; STOCK TRANSACTION ANALYSIS</span>
+      <span><span class="up">▲</span>&nbsp; IPO ANALYTICS</span>
+      <span><span class="up">▲</span>&nbsp; 1% SHAREHOLDERS DATA</span>
+      <span><span class="up">▲</span>&nbsp; FREE-FLOAT DATA</span>
+      <span>IDX · JAKARTA</span>
+      <span><span class="up">▲</span>&nbsp; JOIN THE DISCORD</span>
+    </div>
+  </div>
+</div>
+
+<!-- hero -->
+<section class="hero" id="top">
+  <div class="hero-glow"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow" style="margin-bottom:32px">INDONESIAN STOCK MARKET COMMUNITY</div>
+      <h1>Where conviction meets the <span class="accent">order book.</span></h1>
+      <p class="lede">A community for Indonesian retail traders who'd rather read the data than chase tips. The tools are free, and they show what's under the price: broker flow, IPO demand, real ownership, free float. The rest happens on Discord.</p>
+      <p class="mono-note">// Trade less. Regret less.</p>
+      <div class="cta">
+        <a class="btn btn--primary" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">JOIN THE DISCORD →</a>
+        <a class="btn btn--ghost" href="#apps">SEE THE TOOLS</a>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center">
+      <div class="terminal">
+        <div class="terminal-head">
+          <span>KP://TERMINAL</span>
+          <span class="live"><span class="dot"></span>LIVE</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-logo">
+            <svg class="kp-logo" style="height:70px" viewBox="0 0 600 499" aria-hidden="true"><use href="#kp-mark"/></svg>
+          </div>
+          <a class="app-row" href="https://arthara.id" target="_blank" rel="noopener">
+            <span class="tag">ARTH</span><span class="label">Transaction Analysis</span><span class="arr">↗</span>
+          </a>
+          <a class="app-row" href="https://ipo.klinikpenyesalan.com" target="_blank" rel="noopener">
+            <span class="tag">IPO</span><span class="label">IPO Analytics</span><span class="arr">↗</span>
+          </a>
+          <a class="app-row" href="https://1pct.klinikpenyesalan.com" target="_blank" rel="noopener">
+            <span class="tag">1PCT</span><span class="label">1% Shareholders</span><span class="arr">↗</span>
+          </a>
+          <a class="app-row" href="https://ff.klinikpenyesalan.com" target="_blank" rel="noopener">
+            <span class="tag">FF</span><span class="label">Free-Float Data</span><span class="arr">↗</span>
+          </a>
+          <div class="terminal-prompt">kp@idx:~$ <span class="caret">_</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- tools -->
+<section class="section" id="apps">
+  <div class="wrap section-inner">
+    <div class="apps-head">
+      <div>
+        <div class="eyebrow">TOOLS &amp; DATA</div>
+        <h2>Built for the desk.</h2>
+      </div>
+      <p class="intro">Four free tools, each on its own subdomain. Pick one and dig in.</p>
+    </div>
+
+    <div class="apps-grid">
+
+      <!-- 01 -->
+      <a class="tool-card" href="https://arthara.id" target="_blank" rel="noopener">
+        <div class="tool-viz">
+          <div class="viz-head"><span>BROKER FLOW</span><span style="color:var(--accent)">arthara.id</span></div>
+          <div class="bars">
+            <span style="height:40%;background:var(--accent)"></span>
+            <span style="height:62%;background:var(--accent)"></span>
+            <span style="height:48%;background:var(--logo-light)"></span>
+            <span style="height:78%;background:var(--accent)"></span>
+            <span style="height:34%;background:var(--logo-light)"></span>
+            <span style="height:90%;background:var(--accent)"></span>
+            <span style="height:56%;background:var(--logo-light)"></span>
+            <span style="height:70%;background:var(--accent)"></span>
+            <span style="height:44%;background:var(--logo-light)"></span>
+            <span style="height:64%;background:var(--accent)"></span>
+            <span style="height:82%;background:var(--accent)"></span>
+          </div>
+          <div style="display:flex;gap:16px;font-family:var(--mono);font-size:10px">
+            <span style="color:var(--accent)">BUY&nbsp; 12,400 ▲</span><span style="color:var(--dim)">SELL&nbsp; 9,100 ▼</span><span style="color:var(--mute)">NET +3,300</span>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="row1"><span class="num">01</span><h3>Stock Transaction Analysis</h3></div>
+          <p>See which brokers are loading up and which are dumping, counter by counter. Powered by Arthara.</p>
+          <div class="foot"><span class="url">arthara.id</span><span class="open">OPEN →</span></div>
+        </div>
+      </a>
+
+      <!-- 02 -->
+      <a class="tool-card" href="https://ipo.klinikpenyesalan.com" target="_blank" rel="noopener">
+        <div class="tool-viz">
+          <div class="viz-head"><span>IPO PIPELINE / 2026</span><span style="color:var(--accent)">▲ 12 ACTIVE</span></div>
+          <div style="display:flex;align-items:flex-end;gap:9px;height:62px">
+            <span style="flex:1;height:38%;background:var(--line-2)"></span>
+            <span style="flex:1;height:60%;background:var(--line-2)"></span>
+            <span style="flex:1;height:46%;background:var(--line-2)"></span>
+            <span style="flex:1;height:78%;background:var(--line-2)"></span>
+            <span style="flex:1;height:54%;background:var(--line-2)"></span>
+            <span style="flex:1;height:100%;background:var(--accent)"></span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="meter-row"><span style="width:42px">CDIA</span><span class="meter" style="height:5px"><span style="height:5px;width:82%"></span></span><span style="color:var(--mute)">82%</span></div>
+            <div class="meter-row"><span style="width:42px">RATU</span><span class="meter" style="height:5px"><span style="height:5px;width:54%"></span></span><span style="color:var(--mute)">54%</span></div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="row1"><span class="num">02</span><h3>IPO Analytics</h3></div>
+          <p>How every IDX IPO was priced and subscribed, and how it traded once the hype faded.</p>
+          <div class="foot"><span class="url">ipo.klinikpenyesalan.com</span><span class="open">OPEN →</span></div>
+        </div>
+      </a>
+
+      <!-- 03 -->
+      <a class="tool-card" href="https://1pct.klinikpenyesalan.com" target="_blank" rel="noopener">
+        <div class="tool-viz">
+          <div class="viz-head"><span>OWNERSHIP &gt; 1.00%</span></div>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <div class="meter-row"><span style="width:72px">PT SARANA</span><span class="meter" style="height:9px"><span style="height:9px;width:88%"></span></span><span style="color:var(--mute);width:34px;text-align:right">5.12%</span></div>
+            <div class="meter-row"><span style="width:72px">RG NOMINEE</span><span class="meter" style="height:9px"><span style="height:9px;width:62%"></span></span><span style="color:var(--mute);width:34px;text-align:right">3.41%</span></div>
+            <div class="meter-row"><span style="width:72px">CITI NOM</span><span class="meter" style="height:9px"><span style="height:9px;width:40%;background:var(--accent-dim)"></span></span><span style="color:var(--mute);width:34px;text-align:right">2.18%</span></div>
+            <div class="meter-row"><span style="width:72px">PUBLIC</span><span class="meter" style="height:9px"><span style="height:9px;width:24%;background:var(--accent-dim)"></span></span><span style="color:var(--mute);width:34px;text-align:right">1.07%</span></div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="row1"><span class="num">03</span><h3>1% Shareholders Data</h3></div>
+          <p>When someone crosses the 1% ownership line, you see it the moment it's filed: who's building a position, who's getting out.</p>
+          <div class="foot"><span class="url">1pct.klinikpenyesalan.com</span><span class="open">OPEN →</span></div>
+        </div>
+      </a>
+
+      <!-- 04 -->
+      <a class="tool-card" href="https://ff.klinikpenyesalan.com" target="_blank" rel="noopener">
+        <div class="tool-viz">
+          <div class="viz-head"><span>FREE FLOAT / BBRI</span></div>
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <span style="font-size:54px;font-weight:500;line-height:.9;letter-spacing:-.02em">73.4</span>
+            <span style="font-size:24px;color:var(--accent)">%</span>
+          </div>
+          <div>
+            <div style="display:flex;height:13px;border:1px solid var(--line-2)">
+              <span style="width:73.4%;background:var(--accent)"></span>
+              <span style="flex:1;background:repeating-linear-gradient(45deg,var(--line),var(--line) 3px,transparent 3px,transparent 6px)"></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:9px">
+              <span><span style="color:var(--accent)">■</span> TRADABLE</span><span>■ LOCKED 26.6%</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="row1"><span class="num">04</span><h3>Free-Float Data</h3></div>
+          <p>Know how much of a counter is really tradable before you size in and learn the hard way.</p>
+          <div class="foot"><span class="url">ff.klinikpenyesalan.com</span><span class="open">OPEN →</span></div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- community -->
+<section class="section" id="community">
+  <div class="wrap section-inner">
+    <div class="floor-grid">
+      <div class="floor-main">
+        <div class="floor-glow"></div>
+        <div style="position:relative;z-index:1">
+          <div class="eyebrow" style="margin-bottom:22px">THE FLOOR</div>
+          <h2>Join the <span class="accent">floor.</span></h2>
+          <p>Everything else happens on Discord: live discussion, shared watchlists, and the occasional moment of regret. The floor's always open.</p>
+          <a class="btn btn--primary" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">DISCORD.GG/KPKP88 →</a>
+        </div>
+      </div>
+      <div class="floor-social">
+        <a class="social-cell" href="https://instagram.com/klinik.penyesalan" target="_blank" rel="noopener">
+          <div class="top"><span class="k">INSTAGRAM</span><span class="arr">↗</span></div>
+          <span class="handle">@klinik.penyesalan</span>
+        </a>
+        <a class="social-cell" href="https://x.com/klinikp88" target="_blank" rel="noopener">
+          <div class="top"><span class="k">X / TWITTER</span><span class="arr">↗</span></div>
+          <span class="handle">@klinikp88</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- footer -->
+<footer class="site">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <svg class="kp-logo" style="height:18px" viewBox="0 0 600 499" aria-hidden="true"><use href="#kp-mark"/></svg>
+      <span class="copy">© 2026 KLINIK PENYESALAN · NOT INVESTMENT ADVICE</span>
+    </div>
+    <div class="footer-links">
+      <a href="#apps">TOOLS</a>
+      <a href="#community">COMMUNITY</a>
+      <a href="https://discord.gg/kpkp88" target="_blank" rel="noopener">DISCORD</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme-toggle');
+    var label = btn.querySelector('.toggle-label');
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      label.textContent = next === 'dark' ? 'LIGHT' : 'DARK';
+    });
+  })();
+</script>
+</body>
+</html>
