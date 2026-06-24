@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Klinik Penyesalan · Where conviction meets the order book.</title>
 <meta name="description" content="A community for Indonesian retail traders who'd rather read the data than chase tips. Free tools for broker flow, IPO demand, real ownership, and free float, plus a Discord that argues about all of it.">
-<link rel="canonical" href="https://klinikpenyesalan.com/">
-<meta name="theme-color" content="#13171b">
+<link rel="canonical" href="https://www.klinikpenyesalan.com/">
+<meta name="theme-color" content="#13171b" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eeece6" media="(prefers-color-scheme: light)">
+<script>try{var t=localStorage.getItem('kp-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 
 <!-- Favicons (your logo) -->
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -15,14 +17,20 @@
 
 <!-- Social / Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://klinikpenyesalan.com/">
+<meta property="og:site_name" content="Klinik Penyesalan">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://www.klinikpenyesalan.com/">
 <meta property="og:title" content="Klinik Penyesalan · Where conviction meets the order book.">
 <meta property="og:description" content="A community for Indonesian retail traders who'd rather read the data than chase tips. Free tools for broker flow, IPO demand, real ownership, and free float.">
-<meta property="og:image" content="assets/og-image.png">
+<meta property="og:image" content="https://www.klinikpenyesalan.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Klinik Penyesalan logo on a dark background">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Klinik Penyesalan · Where conviction meets the order book.">
 <meta name="twitter:description" content="Free tools for Indonesian retail traders who'd rather read the data than chase tips. Broker flow, IPO demand, real ownership, free float, plus a Discord that argues about all of it.">
-<meta name="twitter:image" content="assets/og-image.png">
+<meta name="twitter:image" content="https://www.klinikpenyesalan.com/assets/og-image.png">
+<meta name="twitter:image:alt" content="Klinik Penyesalan logo on a dark background">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,26 +39,29 @@
 <style>
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;scroll-behavior:smooth;}
+  html{scroll-padding-top:90px;}
 
   [data-kp-root]{
     --bg:#13171b; --surface:#181d23; --surface-2:#1e242b;
     --bg-trans:rgba(19,23,27,.78);
     --line:rgba(232,237,240,.10); --line-2:rgba(232,237,240,.20);
-    --text:#e9ecef; --dim:#9aa3ab; --mute:#626c74;
+    --text:#e9ecef; --dim:#9aa3ab; --mute:#7e8893;
     --accent:#3bbcb4; --accent-dim:#1f7d77; --on-accent:#06130f;
     --logo-light:#d8d8d8; --logo-teal:#33b2ab; --glow:rgba(59,188,180,.16);
     --elev:0 18px 46px -26px rgba(0,0,0,.62); --elev-hi:0 28px 64px -28px rgba(0,0,0,.72);
     --mono:"JetBrains Mono",ui-monospace,monospace;
     --sans:"Space Grotesk",-apple-system,BlinkMacSystemFont,sans-serif;
+    color-scheme:dark;
   }
   [data-kp-root][data-theme="light"]{
     --bg:#eeece6; --surface:#f8f6f2; --surface-2:#ffffff;
     --bg-trans:rgba(238,236,230,.78);
     --line:rgba(20,24,28,.11); --line-2:rgba(20,24,28,.22);
-    --text:#171b1f; --dim:#566069; --mute:#8a929a;
+    --text:#171b1f; --dim:#566069; --mute:#5f6772;
     --accent:#0e7d76; --accent-dim:#34b3ac; --on-accent:#ffffff;
     --logo-light:#2b3138; --glow:rgba(14,125,118,.12);
     --elev:0 16px 40px -28px rgba(20,24,28,.30); --elev-hi:0 26px 56px -28px rgba(20,24,28,.34);
+    color-scheme:light;
   }
 
   html[data-kp-root]{background:var(--bg);}
@@ -61,6 +72,15 @@
   [data-kp-root] *{transition:background-color .3s ease,color .3s ease,border-color .3s ease,box-shadow .3s ease,transform .25s ease;}
   ::selection{background:var(--accent);color:var(--on-accent);}
   a{color:inherit;}
+
+  /* keyboard focus (a11y) */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+  .tool-card:focus-visible,.app-row:focus-visible,.social-cell:focus-visible{outline-offset:-2px;}
+  .btn:active{transform:translateY(0) scale(.985);}
+
+  /* first-load reveal: visible by default, animates from a hidden start */
+  @keyframes kp-rise{from{opacity:0;transform:translateY(14px)}}
+  .reveal{animation:kp-rise .7s cubic-bezier(.16,1,.3,1) backwards;}
 
   @keyframes kp-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   @keyframes kp-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
@@ -116,6 +136,7 @@
     background:radial-gradient(circle,var(--glow) 0%,transparent 62%);pointer-events:none;z-index:0;}
   .hero-grid{position:relative;z-index:1;padding:100px 32px 110px;display:grid;
     grid-template-columns:1.04fr .96fr;gap:72px;align-items:center;}
+  .hero-grid>*{min-width:0;}
   .hero h1{font-size:clamp(44px,5.2vw,76px);line-height:1;font-weight:500;letter-spacing:-.025em;
     margin:0 0 30px;text-wrap:balance;}
   .hero h1 .accent{color:var(--accent);}
@@ -204,7 +225,7 @@
 
   /* ---- responsive ---- */
   @media (max-width:900px){
-    .hero-grid{grid-template-columns:1fr;gap:48px;padding:72px 0 84px;}
+    .hero-grid{grid-template-columns:1fr;gap:48px;padding:72px 32px 84px;}
     .apps-grid{grid-template-columns:1fr;}
     .floor-grid{grid-template-columns:1fr;}
     .floor-social{flex-direction:row;border-left:0;border-top:1px solid var(--line);}
@@ -212,17 +233,20 @@
   }
   @media (max-width:620px){
     .wrap{padding:0 20px;}
-    .hero-grid,.section-inner,.header-inner,.footer-inner{padding-left:0;padding-right:0;}
-    .wrap.header-inner,.wrap.footer-inner{padding:0 20px;}
+    .hero-grid,.section-inner,.header-inner,.footer-inner{padding-left:20px;padding-right:20px;}
     nav.main .nav-link{display:none;}
     .floor-main{padding:40px 28px;}
     .social-cell{padding:28px;}
     .floor-social{flex-direction:column;}
     .social-cell + .social-cell{border-top:1px solid var(--line);border-left:0;}
     .header-inner{height:62px;}
+    .toggle,header .btn{min-height:44px;}
+  }
+  @media (max-width:520px){
+    .brand .name{display:none;}
   }
   @media (prefers-reduced-motion:reduce){
-    .ticker-track,.terminal-head .live .dot,.terminal-prompt .caret{animation:none;}
+    .ticker-track,.terminal-head .live .dot,.terminal-prompt .caret,.reveal{animation:none;}
     [data-kp-root] *{transition:none;}
   }
 </style>
@@ -263,7 +287,7 @@
     <nav class="main">
       <a class="nav-link" href="#apps">TOOLS</a>
       <a class="nav-link" href="#community">COMMUNITY</a>
-      <button class="toggle" id="theme-toggle" type="button" aria-label="Toggle color theme">
+      <button class="toggle" id="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false">
         <span class="dot"></span><span class="toggle-label">LIGHT</span>
       </button>
       <a class="btn btn--primary" style="padding:12px 18px;font-size:11px;margin-left:4px" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">JOIN DISCORD →</a>
@@ -298,17 +322,17 @@
   <div class="hero-glow"></div>
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow" style="margin-bottom:32px">INDONESIAN STOCK MARKET COMMUNITY</div>
-      <h1>Where conviction meets the <span class="accent">order book.</span></h1>
-      <p class="lede">A community for Indonesian retail traders who'd rather read the data than chase tips. The tools are free, and they show what's under the price: broker flow, IPO demand, real ownership, free float. The rest happens on Discord.</p>
-      <p class="mono-note">// Trade less. Regret less.</p>
-      <div class="cta">
+      <div class="eyebrow reveal" style="margin-bottom:32px;animation-delay:.04s">INDONESIAN STOCK MARKET COMMUNITY</div>
+      <h1 class="reveal" style="animation-delay:.10s">Where conviction meets the <span class="accent">order book.</span></h1>
+      <p class="lede reveal" style="animation-delay:.16s">A community for Indonesian retail traders who'd rather read the data than chase tips. The tools are free, and they show what's under the price: broker flow, IPO demand, real ownership, free float. The rest happens on Discord.</p>
+      <p class="mono-note reveal" style="animation-delay:.22s">// Trade less. Regret less.</p>
+      <div class="cta reveal" style="animation-delay:.28s">
         <a class="btn btn--primary" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">JOIN THE DISCORD →</a>
         <a class="btn btn--ghost" href="#apps">SEE THE TOOLS</a>
       </div>
     </div>
 
-    <div style="display:flex;align-items:center">
+    <div class="reveal" style="display:flex;align-items:center;animation-delay:.20s">
       <div class="terminal">
         <div class="terminal-head">
           <span>KP://TERMINAL</span>
@@ -496,10 +520,17 @@
     var root = document.documentElement;
     var btn = document.getElementById('theme-toggle');
     var label = btn.querySelector('.toggle-label');
+    function sync() {
+      var dark = root.getAttribute('data-theme') !== 'light';
+      label.textContent = dark ? 'LIGHT' : 'DARK';
+      btn.setAttribute('aria-pressed', String(!dark));
+    }
+    sync();
     btn.addEventListener('click', function () {
       var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       root.setAttribute('data-theme', next);
-      label.textContent = next === 'dark' ? 'LIGHT' : 'DARK';
+      try { localStorage.setItem('kp-theme', next); } catch (e) {}
+      sync();
     });
   })();
 </script>
