@@ -614,17 +614,17 @@
       var loc = a.closest('header') ? 'nav' : a.closest('#community') ? 'floor' : a.closest('footer') ? 'footer' : 'hero';
       window.va('event', { name: 'Join Discord', data: { location: loc } });
     } else if (h.indexOf('arthara.id') > -1) {
-      window.va('event', { name: 'Open Tool', data: { tool: 'transaction', from: inTerminal ? 'terminal' : 'card' } });
+      window.va('event', { name: 'Open Stock Transaction', data: { from: inTerminal ? 'terminal' : 'card' } });
     } else if (h.indexOf('ipo.klinikpenyesalan') > -1) {
-      window.va('event', { name: 'Open Tool', data: { tool: 'ipo', from: inTerminal ? 'terminal' : 'card' } });
+      window.va('event', { name: 'Open IPO Analytics', data: { from: inTerminal ? 'terminal' : 'card' } });
     } else if (h.indexOf('1pct.klinikpenyesalan') > -1) {
-      window.va('event', { name: 'Open Tool', data: { tool: '1pct', from: inTerminal ? 'terminal' : 'card' } });
+      window.va('event', { name: 'Open 1% Shareholders', data: { from: inTerminal ? 'terminal' : 'card' } });
     } else if (h.indexOf('ff.klinikpenyesalan') > -1) {
-      window.va('event', { name: 'Open Tool', data: { tool: 'free-float', from: inTerminal ? 'terminal' : 'card' } });
+      window.va('event', { name: 'Open Free-Float', data: { from: inTerminal ? 'terminal' : 'card' } });
     } else if (h.indexOf('instagram.com') > -1) {
-      window.va('event', { name: 'Social', data: { platform: 'instagram' } });
+      window.va('event', { name: 'Click Instagram' });
     } else if (h.indexOf('x.com') > -1) {
-      window.va('event', { name: 'Social', data: { platform: 'x' } });
+      window.va('event', { name: 'Click X' });
     }
   });
 </script>
