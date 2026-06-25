@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <title>Klinik Penyesalan · Where conviction meets the order book.</title>
 <meta name="description" content="A community for Indonesian retail traders who'd rather read the data than chase tips. Free tools for broker flow, IPO demand, real ownership, and free float, plus a Discord that argues about all of it.">
 <link rel="canonical" href="https://www.klinikpenyesalan.com/">
@@ -27,6 +28,8 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Klinik Penyesalan logo on a dark background">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@klinikp88">
+<meta name="twitter:creator" content="@klinikp88">
 <meta name="twitter:title" content="Klinik Penyesalan · Where conviction meets the order book.">
 <meta name="twitter:description" content="Free tools for Indonesian retail traders who'd rather read the data than chase tips. Broker flow, IPO demand, real ownership, free float, plus a Discord that argues about all of it.">
 <meta name="twitter:image" content="https://www.klinikpenyesalan.com/assets/og-image.png">
@@ -192,7 +195,37 @@
   .bars span{width:7px;}
   .meter-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--dim);}
   .meter{flex:1;background:var(--line);}
-  .meter > span{display:block;background:var(--accent);}
+  .meter > span{display:block;background:var(--accent);position:relative;overflow:hidden;}
+
+  /* ---- live charts (looping motion) ---- */
+  @keyframes kp-eq{0%,100%{transform:scaleY(.5)}50%{transform:scaleY(1)}}
+  @keyframes kp-eq2{0%,100%{transform:scaleY(.84)}50%{transform:scaleY(1)}}
+  @keyframes kp-flow{0%{transform:translateX(-120%)}55%,100%{transform:translateX(240%)}}
+  @keyframes kp-stripe{to{background-position:8.49px 0}}
+  .bars span{transform-origin:bottom;animation:kp-eq 1.5s ease-in-out infinite;}
+  .bars span:nth-child(2){animation-duration:1.9s;animation-delay:-.5s}
+  .bars span:nth-child(3){animation-duration:1.2s;animation-delay:-.3s}
+  .bars span:nth-child(4){animation-duration:1.7s;animation-delay:-.8s}
+  .bars span:nth-child(5){animation-duration:1.35s;animation-delay:-.2s}
+  .bars span:nth-child(6){animation-duration:2s;animation-delay:-.6s}
+  .bars span:nth-child(7){animation-duration:1.45s;animation-delay:-.9s}
+  .bars span:nth-child(8){animation-duration:1.8s;animation-delay:-.15s}
+  .bars span:nth-child(9){animation-duration:1.25s;animation-delay:-.7s}
+  .bars span:nth-child(10){animation-duration:1.6s;animation-delay:-.4s}
+  .bars span:nth-child(11){animation-duration:1.4s;animation-delay:-.55s}
+  .ipo-bars span{transform-origin:bottom;animation:kp-eq2 2.6s ease-in-out infinite;}
+  .ipo-bars span:nth-child(2){animation-duration:3s;animation-delay:-.6s}
+  .ipo-bars span:nth-child(3){animation-duration:2.3s;animation-delay:-.3s}
+  .ipo-bars span:nth-child(4){animation-duration:2.8s;animation-delay:-.9s}
+  .ipo-bars span:nth-child(5){animation-duration:2.5s;animation-delay:-.4s}
+  .ipo-bars span:nth-child(6){animation:kp-eq 1.9s ease-in-out infinite}
+  .meter>span::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.26),transparent);transform:translateX(-120%);animation:kp-flow 2.8s ease-in-out infinite;}
+  .meter-row:nth-child(2) .meter>span::after{animation-delay:-.9s}
+  .meter-row:nth-child(3) .meter>span::after{animation-delay:-1.6s}
+  .meter-row:nth-child(4) .meter>span::after{animation-delay:-2.2s}
+  .ff-fill{position:relative;overflow:hidden;}
+  .ff-fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transform:translateX(-120%);animation:kp-flow 3s ease-in-out infinite;}
+  .ff-locked{animation:kp-stripe .9s linear infinite;}
 
   /* ---- community ---- */
   .floor-grid{border:1px solid var(--line);background:var(--surface);box-shadow:var(--elev);
@@ -246,10 +279,39 @@
     .brand .name{display:none;}
   }
   @media (prefers-reduced-motion:reduce){
-    .ticker-track,.terminal-head .live .dot,.terminal-prompt .caret,.reveal{animation:none;}
+    .ticker-track,.terminal-head .live .dot,.terminal-prompt .caret,.reveal,
+    .bars span,.ipo-bars span,.ff-locked{animation:none;}
+    .meter>span::after,.ff-fill::after{display:none;}
     [data-kp-root] *{transition:none;}
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.klinikpenyesalan.com/#org",
+      "name": "Klinik Penyesalan",
+      "url": "https://www.klinikpenyesalan.com/",
+      "logo": "https://www.klinikpenyesalan.com/assets/favicon-256.png",
+      "description": "A community for Indonesian retail traders who'd rather read the data than chase tips.",
+      "sameAs": [
+        "https://instagram.com/klinik.penyesalan",
+        "https://x.com/klinikp88",
+        "https://discord.gg/kpkp88"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.klinikpenyesalan.com/#website",
+      "name": "Klinik Penyesalan",
+      "url": "https://www.klinikpenyesalan.com/",
+      "publisher": { "@id": "https://www.klinikpenyesalan.com/#org" }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -406,7 +468,7 @@
       <a class="tool-card" href="https://ipo.klinikpenyesalan.com" target="_blank" rel="noopener">
         <div class="tool-viz">
           <div class="viz-head"><span>IPO PIPELINE / 2026</span><span style="color:var(--accent)">▲ 12 ACTIVE</span></div>
-          <div style="display:flex;align-items:flex-end;gap:9px;height:62px">
+          <div class="ipo-bars" style="display:flex;align-items:flex-end;gap:9px;height:62px">
             <span style="flex:1;height:38%;background:var(--line-2)"></span>
             <span style="flex:1;height:60%;background:var(--line-2)"></span>
             <span style="flex:1;height:46%;background:var(--line-2)"></span>
@@ -454,8 +516,8 @@
           </div>
           <div>
             <div style="display:flex;height:13px;border:1px solid var(--line-2)">
-              <span style="width:73.4%;background:var(--accent)"></span>
-              <span style="flex:1;background:repeating-linear-gradient(45deg,var(--line),var(--line) 3px,transparent 3px,transparent 6px)"></span>
+              <span class="ff-fill" style="width:73.4%;background:var(--accent)"></span>
+              <span class="ff-locked" style="flex:1;background:repeating-linear-gradient(45deg,var(--line),var(--line) 3px,transparent 3px,transparent 6px)"></span>
             </div>
             <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:9px">
               <span><span style="color:var(--accent)">■</span> TRADABLE</span><span>■ LOCKED 26.6%</span>
@@ -540,5 +602,30 @@
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
+<script>
+  // Custom click events for Vercel Web Analytics (records on Pro plans; harmless no-op otherwise)
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || typeof window.va !== 'function') return;
+    var h = a.getAttribute('href') || '';
+    var inTerminal = !!(a.closest && a.closest('.terminal'));
+    if (h.indexOf('discord.gg') > -1) {
+      var loc = a.closest('header') ? 'nav' : a.closest('#community') ? 'floor' : a.closest('footer') ? 'footer' : 'hero';
+      window.va('event', { name: 'Join Discord', data: { location: loc } });
+    } else if (h.indexOf('arthara.id') > -1) {
+      window.va('event', { name: 'Open Tool', data: { tool: 'transaction', from: inTerminal ? 'terminal' : 'card' } });
+    } else if (h.indexOf('ipo.klinikpenyesalan') > -1) {
+      window.va('event', { name: 'Open Tool', data: { tool: 'ipo', from: inTerminal ? 'terminal' : 'card' } });
+    } else if (h.indexOf('1pct.klinikpenyesalan') > -1) {
+      window.va('event', { name: 'Open Tool', data: { tool: '1pct', from: inTerminal ? 'terminal' : 'card' } });
+    } else if (h.indexOf('ff.klinikpenyesalan') > -1) {
+      window.va('event', { name: 'Open Tool', data: { tool: 'free-float', from: inTerminal ? 'terminal' : 'card' } });
+    } else if (h.indexOf('instagram.com') > -1) {
+      window.va('event', { name: 'Social', data: { platform: 'instagram' } });
+    } else if (h.indexOf('x.com') > -1) {
+      window.va('event', { name: 'Social', data: { platform: 'x' } });
+    }
+  });
+</script>
 </body>
 </html>
