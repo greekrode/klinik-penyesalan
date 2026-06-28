@@ -265,22 +265,19 @@
     background:var(--surface);box-shadow:var(--elev);}
   .fg-card .terminal-head .fg-head-meta{color:var(--mute);letter-spacing:.06em;}
 
-  .fg-meter-body{padding:34px 30px 28px;display:flex;flex-direction:column;
-    justify-content:space-between;gap:38px;flex:1;}
-  .fg-now{display:flex;align-items:baseline;gap:18px;}
-  .fg-val{font-family:var(--sans);font-size:92px;font-weight:600;line-height:.82;letter-spacing:-.035em;}
-  .fg-cls{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.16em;line-height:1.35;color:var(--fear);}
-  .fg-track-bar{position:relative;height:5px;border-radius:3px;
-    background:linear-gradient(90deg,var(--fear) 0%,var(--mute) 50%,var(--accent) 100%);opacity:.9;}
-  .fg-track-bar i{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;
-    background:var(--text);border:2px solid var(--surface);transform:translate(-50%,-50%);box-shadow:0 1px 5px rgba(0,0,0,.4);}
-  .fg-track-lbl{display:flex;justify-content:space-between;margin-top:11px;
-    font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--mute);}
+  .fg-meter-body{padding:32px 28px 26px;display:flex;flex-direction:column;
+    justify-content:space-between;gap:30px;flex:1;}
+  .fg-gaugewrap{display:flex;flex-direction:column;align-items:center;}
+  .fg-gauge{width:100%;max-width:236px;height:auto;display:block;overflow:visible;}
+  .fg-gauge .g-end{font-family:var(--mono);font-size:11px;fill:var(--mute);}
+  .fg-val{font-family:var(--sans);font-size:62px;font-weight:600;line-height:1;letter-spacing:-.03em;margin-top:8px;color:var(--fear);}
+  .fg-cls{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.2em;margin-top:11px;color:var(--fear);}
+  .fg-asof{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--mute);margin-top:10px;}
   .fg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
     padding-top:20px;border-top:1px solid var(--line);}
-  .fg-stats > div{display:flex;flex-direction:column;gap:7px;}
+  .fg-stats > div{display:flex;flex-direction:column;gap:7px;text-align:center;}
   .fg-stats span{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--mute);}
-  .fg-stats b{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--text);}
+  .fg-stats b{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);}
 
   .fg-chart-body{padding:24px 22px 18px;display:flex;flex-direction:column;flex:1;}
   .fg-chart{width:100%;height:auto;display:block;flex:1;overflow:visible;}
@@ -310,13 +307,13 @@
     .fg-grid{grid-template-columns:1fr;}
   }
   @media (max-width:760px){
+    nav.main .nav-link{display:none;}
     .fg-chart .ax{font-size:16px;}
     .fg-chart .m-odd{display:none;}
   }
   @media (max-width:620px){
     .wrap{padding:0 20px;}
     .hero-grid,.section-inner,.header-inner,.footer-inner{padding-left:20px;padding-right:20px;}
-    nav.main .nav-link{display:none;}
     .floor-main{padding:40px 28px;}
     .social-cell{padding:28px;}
     .floor-social{flex-direction:column;}
@@ -604,22 +601,25 @@
       <!-- current reading -->
       <div class="fg-card">
         <div class="terminal-head">
-          <span>FEAR &amp; GREED · NOW</span>
-          <span class="live"><span class="dot"></span>LIVE</span>
+          <span>FEAR &amp; GREED</span>
+          <span class="fg-head-meta">SNAPSHOT</span>
         </div>
         <div class="fg-meter-body">
-          <div class="fg-now">
-            <span class="fg-val">22</span>
-            <span class="fg-cls">EXTREME<br>FEAR</span>
-          </div>
-          <div class="fg-track">
-            <div class="fg-track-bar"><i style="left:22%"></i></div>
-            <div class="fg-track-lbl"><span>0 · FEAR</span><span>GREED · 100</span></div>
+          <div class="fg-gaugewrap">
+            <svg class="fg-gauge" viewBox="0 0 260 150" role="img" aria-label="Fear and Greed gauge, current value 22 out of 100, extreme fear">
+<path d="M26.0 138.0 A104 104 0 0 1 56.5 64.5" stroke="#e5484d" stroke-width="14" fill="none"/><path d="M56.5 64.5 A104 104 0 0 1 113.7 35.3" stroke="#ef8e4b" stroke-width="14" fill="none"/><path d="M113.7 35.3 A104 104 0 0 1 146.3 35.3" stroke="#dcc24a" stroke-width="14" fill="none"/><path d="M146.3 35.3 A104 104 0 0 1 203.5 64.5" stroke="#5bb87a" stroke-width="14" fill="none"/><path d="M203.5 64.5 A104 104 0 0 1 234.0 138.0" stroke="#3bbcb4" stroke-width="14" fill="none"/>
+<line x1="130" y1="138" x2="67.5" y2="84.9" stroke="var(--text)" stroke-width="3.2" stroke-linecap="round"/><circle cx="130" cy="138" r="6.5" fill="var(--text)"/><circle cx="130" cy="138" r="2.5" fill="var(--surface)"/>
+<text x="11" y="142" class="g-end" text-anchor="middle">0</text>
+<text x="249" y="142" class="g-end" text-anchor="middle">100</text>
+</svg>
+            <div class="fg-val">22</div>
+            <div class="fg-cls">EXTREME FEAR</div>
+            <div class="fg-asof">AS OF 26 JUN 2026</div>
           </div>
           <div class="fg-stats">
-            <div><span>JCI LEVEL</span><b>5,896</b></div>
             <div><span>30-DAY AVG</span><b>11</b></div>
-            <div><span>AS OF</span><b>26 JUN</b></div>
+            <div><span>1Y HIGH</span><b>91</b></div>
+            <div><span>1Y LOW</span><b>0</b></div>
           </div>
         </div>
       </div>
