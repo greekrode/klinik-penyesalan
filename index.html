@@ -610,20 +610,20 @@
         </div>
         <div class="fg-meter-body">
           <div class="fg-gaugewrap">
-            <svg class="fg-gauge" viewBox="0 0 260 150" role="img" aria-label="Fear and Greed gauge, current value 22 out of 100, extreme fear">
+            <svg class="fg-gauge" id="fg-gauge" viewBox="0 0 260 150" role="img" aria-label="Fear and Greed gauge, current value 22 out of 100, extreme fear">
 <path d="M26.0 138.0 A104 104 0 0 1 56.5 64.5" stroke="#e5484d" stroke-width="14" fill="none"/><path d="M56.5 64.5 A104 104 0 0 1 113.7 35.3" stroke="#ef8e4b" stroke-width="14" fill="none"/><path d="M113.7 35.3 A104 104 0 0 1 146.3 35.3" stroke="#dcc24a" stroke-width="14" fill="none"/><path d="M146.3 35.3 A104 104 0 0 1 203.5 64.5" stroke="#5bb87a" stroke-width="14" fill="none"/><path d="M203.5 64.5 A104 104 0 0 1 234.0 138.0" stroke="#3bbcb4" stroke-width="14" fill="none"/>
-<line x1="130" y1="138" x2="67.5" y2="84.9" stroke="var(--text)" stroke-width="3.2" stroke-linecap="round"/><circle cx="130" cy="138" r="6.5" fill="var(--text)"/><circle cx="130" cy="138" r="2.5" fill="var(--surface)"/>
+<line id="fg-needle" x1="130" y1="138" x2="67.5" y2="84.9" stroke="var(--text)" stroke-width="3.2" stroke-linecap="round"/><circle cx="130" cy="138" r="6.5" fill="var(--text)"/><circle cx="130" cy="138" r="2.5" fill="var(--surface)"/>
 <text x="11" y="142" class="g-end" text-anchor="middle">0</text>
 <text x="249" y="142" class="g-end" text-anchor="middle">100</text>
 </svg>
-            <div class="fg-val">22</div>
-            <div class="fg-cls">EXTREME FEAR</div>
-            <div class="fg-asof">AS OF 26 JUN 2026</div>
+            <div class="fg-val" id="fg-val">22</div>
+            <div class="fg-cls" id="fg-cls">EXTREME FEAR</div>
+            <div class="fg-asof" id="fg-asof">AS OF 26 JUN 2026</div>
           </div>
           <div class="fg-stats">
-            <div><span>30-DAY AVG</span><b>11</b></div>
-            <div><span>1Y HIGH</span><b>91</b></div>
-            <div><span>1Y LOW</span><b>0</b></div>
+            <div><span>30-DAY AVG</span><b id="fg-avg">11</b></div>
+            <div><span>1Y HIGH</span><b id="fg-high">91</b></div>
+            <div><span>1Y LOW</span><b id="fg-low">0</b></div>
           </div>
         </div>
       </div>
@@ -635,7 +635,7 @@
           <span class="fg-head-meta">1Y · DAILY</span>
         </div>
         <div class="fg-chart-body">
-          <svg class="fg-chart" viewBox="0 0 1000 360" preserveAspectRatio="xMidYMid meet" role="img" aria-label="One year chart of the JCI level and the Fear and Greed Index">
+          <svg class="fg-chart" id="fg-chart" viewBox="0 0 1000 360" preserveAspectRatio="xMidYMid meet" role="img" aria-label="One year chart of the JCI level and the Fear and Greed Index">
 <path class="fg-area" d="M58.0 312.0 L58.0 191.4 L61.7 189.5 L65.5 190.3 L69.2 192.4 L73.0 192.6 L76.7 193.5 L80.4 191.2 L84.2 191.0 L87.9 188.5 L91.7 184.5 L95.4 181.9 L99.1 178.7 L102.9 176.0 L106.6 172.7 L110.4 166.6 L114.1 165.1 L117.8 159.6 L121.6 163.0 L125.3 155.1 L129.1 151.1 L132.8 150.3 L136.5 145.8 L140.3 145.6 L144.0 149.9 L147.7 154.1 L151.5 150.7 L155.2 155.4 L159.0 152.1 L162.7 152.9 L166.4 153.7 L170.2 151.0 L173.9 146.4 L177.7 134.6 L181.4 128.1 L185.1 125.7 L188.9 127.8 L192.6 130.0 L196.4 124.9 L200.1 128.3 L203.8 130.3 L207.6 126.0 L211.3 127.3 L215.1 125.4 L218.8 124.4 L222.5 132.1 L226.3 138.1 L230.0 133.9 L233.8 128.6 L237.5 129.8 L241.2 136.2 L245.0 144.9 L248.7 140.5 L252.5 137.4 L256.2 130.6 L259.9 125.3 L263.7 124.0 L267.4 119.7 L271.2 120.8 L274.9 118.1 L278.6 118.8 L282.4 113.4 L286.1 113.3 L289.8 118.7 L293.6 115.0 L297.3 113.5 L301.1 117.5 L304.8 118.5 L308.5 116.8 L312.3 113.8 L316.0 112.4 L319.8 110.6 L323.5 110.8 L327.2 105.4 L331.0 104.9 L334.7 106.9 L338.5 117.1 L342.2 118.1 L345.9 113.4 L349.7 126.7 L353.4 115.7 L357.2 106.2 L360.9 111.6 L364.6 103.9 L368.4 104.1 L372.1 113.9 L375.9 115.4 L379.6 110.8 L383.3 109.6 L387.1 110.9 L390.8 103.9 L394.6 106.0 L398.3 101.1 L402.0 99.9 L405.8 96.3 L409.5 96.5 L413.3 98.0 L417.0 96.6 L420.7 97.7 L424.5 97.8 L428.2 94.8 L431.9 98.3 L435.7 95.5 L439.4 94.6 L443.2 95.0 L446.9 85.1 L450.6 88.2 L454.4 83.1 L458.1 86.6 L461.9 89.0 L465.6 86.5 L469.3 82.1 L473.1 82.5 L476.8 80.6 L480.6 81.1 L484.3 76.2 L488.0 79.6 L491.8 76.8 L495.5 81.9 L499.3 79.4 L503.0 80.0 L506.7 77.7 L510.5 78.3 L514.2 82.0 L518.0 82.6 L521.7 80.3 L525.4 84.2 L529.2 87.1 L532.9 80.4 L536.7 80.2 L540.4 73.8 L544.1 66.7 L547.9 62.0 L551.6 61.3 L555.4 62.5 L559.1 61.8 L562.8 65.1 L566.6 61.1 L570.3 55.7 L574.1 53.0 L577.8 49.3 L581.5 49.2 L585.3 57.1 L589.0 58.3 L592.7 60.9 L596.5 59.3 L600.2 59.0 L604.0 101.0 L607.7 106.6 L611.4 100.4 L615.2 126.2 L618.9 113.5 L622.7 112.0 L626.4 114.7 L630.1 125.4 L633.9 119.3 L637.6 113.0 L641.4 102.8 L645.1 104.5 L648.8 107.8 L652.6 101.6 L656.3 103.9 L660.1 104.1 L663.8 96.2 L667.5 103.5 L671.3 100.9 L675.0 106.4 L678.8 106.4 L682.5 120.3 L686.2 125.2 L690.0 148.2 L693.7 139.7 L697.5 147.7 L701.2 163.4 L704.9 156.9 L708.7 160.1 L712.4 161.9 L716.2 176.2 L719.9 183.5 L723.6 178.1 L727.4 165.7 L731.1 174.5 L734.8 178.7 L738.6 179.1 L742.3 181.8 L746.1 173.2 L749.8 183.2 L753.5 185.6 L757.3 186.7 L761.0 167.1 L764.8 165.3 L768.5 155.7 L772.2 153.1 L776.0 141.9 L779.7 145.3 L783.5 145.4 L787.2 144.6 L790.9 147.1 L794.7 149.3 L798.4 150.5 L802.2 160.8 L805.9 176.7 L809.6 178.1 L813.4 180.3 L817.1 178.5 L820.9 187.6 L824.6 186.7 L828.3 181.3 L832.1 179.0 L835.8 173.8 L839.6 186.8 L843.3 190.9 L847.0 193.9 L850.8 202.5 L854.5 210.4 L858.3 224.9 L862.0 228.2 L865.7 242.4 L869.5 238.1 L873.2 235.3 L876.9 240.2 L880.7 240.3 L884.4 236.0 L888.2 252.2 L891.9 258.6 L895.6 274.2 L899.4 290.3 L903.1 264.5 L906.9 254.6 L910.6 255.7 L914.3 248.0 L918.1 232.2 L921.8 234.4 L925.6 237.5 L929.3 237.2 L933.0 241.0 L936.8 242.0 L940.5 255.8 L944.3 248.5 L948.0 255.0 L948.0 312.0 Z"/>
 <path class="fg-jline" d="M58.0 191.4 L61.7 189.5 L65.5 190.3 L69.2 192.4 L73.0 192.6 L76.7 193.5 L80.4 191.2 L84.2 191.0 L87.9 188.5 L91.7 184.5 L95.4 181.9 L99.1 178.7 L102.9 176.0 L106.6 172.7 L110.4 166.6 L114.1 165.1 L117.8 159.6 L121.6 163.0 L125.3 155.1 L129.1 151.1 L132.8 150.3 L136.5 145.8 L140.3 145.6 L144.0 149.9 L147.7 154.1 L151.5 150.7 L155.2 155.4 L159.0 152.1 L162.7 152.9 L166.4 153.7 L170.2 151.0 L173.9 146.4 L177.7 134.6 L181.4 128.1 L185.1 125.7 L188.9 127.8 L192.6 130.0 L196.4 124.9 L200.1 128.3 L203.8 130.3 L207.6 126.0 L211.3 127.3 L215.1 125.4 L218.8 124.4 L222.5 132.1 L226.3 138.1 L230.0 133.9 L233.8 128.6 L237.5 129.8 L241.2 136.2 L245.0 144.9 L248.7 140.5 L252.5 137.4 L256.2 130.6 L259.9 125.3 L263.7 124.0 L267.4 119.7 L271.2 120.8 L274.9 118.1 L278.6 118.8 L282.4 113.4 L286.1 113.3 L289.8 118.7 L293.6 115.0 L297.3 113.5 L301.1 117.5 L304.8 118.5 L308.5 116.8 L312.3 113.8 L316.0 112.4 L319.8 110.6 L323.5 110.8 L327.2 105.4 L331.0 104.9 L334.7 106.9 L338.5 117.1 L342.2 118.1 L345.9 113.4 L349.7 126.7 L353.4 115.7 L357.2 106.2 L360.9 111.6 L364.6 103.9 L368.4 104.1 L372.1 113.9 L375.9 115.4 L379.6 110.8 L383.3 109.6 L387.1 110.9 L390.8 103.9 L394.6 106.0 L398.3 101.1 L402.0 99.9 L405.8 96.3 L409.5 96.5 L413.3 98.0 L417.0 96.6 L420.7 97.7 L424.5 97.8 L428.2 94.8 L431.9 98.3 L435.7 95.5 L439.4 94.6 L443.2 95.0 L446.9 85.1 L450.6 88.2 L454.4 83.1 L458.1 86.6 L461.9 89.0 L465.6 86.5 L469.3 82.1 L473.1 82.5 L476.8 80.6 L480.6 81.1 L484.3 76.2 L488.0 79.6 L491.8 76.8 L495.5 81.9 L499.3 79.4 L503.0 80.0 L506.7 77.7 L510.5 78.3 L514.2 82.0 L518.0 82.6 L521.7 80.3 L525.4 84.2 L529.2 87.1 L532.9 80.4 L536.7 80.2 L540.4 73.8 L544.1 66.7 L547.9 62.0 L551.6 61.3 L555.4 62.5 L559.1 61.8 L562.8 65.1 L566.6 61.1 L570.3 55.7 L574.1 53.0 L577.8 49.3 L581.5 49.2 L585.3 57.1 L589.0 58.3 L592.7 60.9 L596.5 59.3 L600.2 59.0 L604.0 101.0 L607.7 106.6 L611.4 100.4 L615.2 126.2 L618.9 113.5 L622.7 112.0 L626.4 114.7 L630.1 125.4 L633.9 119.3 L637.6 113.0 L641.4 102.8 L645.1 104.5 L648.8 107.8 L652.6 101.6 L656.3 103.9 L660.1 104.1 L663.8 96.2 L667.5 103.5 L671.3 100.9 L675.0 106.4 L678.8 106.4 L682.5 120.3 L686.2 125.2 L690.0 148.2 L693.7 139.7 L697.5 147.7 L701.2 163.4 L704.9 156.9 L708.7 160.1 L712.4 161.9 L716.2 176.2 L719.9 183.5 L723.6 178.1 L727.4 165.7 L731.1 174.5 L734.8 178.7 L738.6 179.1 L742.3 181.8 L746.1 173.2 L749.8 183.2 L753.5 185.6 L757.3 186.7 L761.0 167.1 L764.8 165.3 L768.5 155.7 L772.2 153.1 L776.0 141.9 L779.7 145.3 L783.5 145.4 L787.2 144.6 L790.9 147.1 L794.7 149.3 L798.4 150.5 L802.2 160.8 L805.9 176.7 L809.6 178.1 L813.4 180.3 L817.1 178.5 L820.9 187.6 L824.6 186.7 L828.3 181.3 L832.1 179.0 L835.8 173.8 L839.6 186.8 L843.3 190.9 L847.0 193.9 L850.8 202.5 L854.5 210.4 L858.3 224.9 L862.0 228.2 L865.7 242.4 L869.5 238.1 L873.2 235.3 L876.9 240.2 L880.7 240.3 L884.4 236.0 L888.2 252.2 L891.9 258.6 L895.6 274.2 L899.4 290.3 L903.1 264.5 L906.9 254.6 L910.6 255.7 L914.3 248.0 L918.1 232.2 L921.8 234.4 L925.6 237.5 L929.3 237.2 L933.0 241.0 L936.8 242.0 L940.5 255.8 L944.3 248.5 L948.0 255.0"/>
 <path class="fg-line" d="M58.0 169.9 L61.7 185.9 L65.5 183.0 L69.2 187.0 L73.0 128.7 L76.7 182.7 L80.4 184.7 L84.2 183.9 L87.9 189.3 L91.7 155.0 L95.4 165.6 L99.1 151.8 L102.9 161.3 L106.6 168.1 L110.4 170.1 L114.1 187.9 L117.8 129.5 L121.6 137.0 L125.3 183.6 L129.1 125.8 L132.8 137.0 L136.5 113.8 L140.3 118.7 L144.0 131.0 L147.7 202.7 L151.5 129.0 L155.2 138.7 L159.0 129.0 L162.7 128.7 L166.4 125.8 L170.2 113.8 L173.9 91.2 L177.7 66.9 L181.4 66.3 L185.1 72.6 L188.9 76.6 L192.6 84.6 L196.4 79.2 L200.1 90.9 L203.8 96.1 L207.6 89.8 L211.3 99.8 L215.1 100.1 L218.8 94.4 L222.5 104.1 L226.3 133.5 L230.0 106.7 L233.8 94.6 L237.5 91.8 L241.2 102.9 L245.0 141.0 L248.7 118.1 L252.5 125.2 L256.2 111.5 L259.9 99.8 L263.7 99.5 L267.4 89.2 L271.2 107.8 L274.9 105.8 L278.6 114.1 L282.4 109.2 L286.1 113.8 L289.8 132.4 L293.6 128.1 L297.3 111.2 L301.1 115.2 L304.8 120.1 L308.5 121.2 L312.3 113.8 L316.0 96.4 L319.8 74.9 L323.5 71.2 L327.2 52.6 L331.0 59.7 L334.7 74.6 L338.5 110.9 L342.2 121.8 L345.9 95.8 L349.7 137.3 L353.4 115.2 L357.2 89.5 L360.9 110.9 L364.6 72.9 L368.4 91.8 L372.1 116.7 L375.9 97.8 L379.6 115.8 L383.3 88.6 L387.1 132.7 L390.8 113.8 L394.6 130.1 L398.3 114.1 L402.0 120.1 L405.8 116.7 L409.5 122.7 L413.3 115.5 L417.0 112.1 L420.7 129.8 L424.5 97.8 L428.2 104.7 L431.9 132.1 L435.7 116.1 L439.4 128.1 L443.2 129.8 L446.9 102.1 L450.6 119.8 L454.4 80.9 L458.1 122.1 L461.9 92.9 L465.6 92.9 L469.3 71.8 L473.1 83.8 L476.8 85.8 L480.6 98.1 L484.3 88.9 L488.0 99.8 L491.8 90.6 L495.5 111.8 L499.3 99.5 L503.0 103.2 L506.7 86.6 L510.5 91.8 L514.2 106.4 L518.0 112.1 L521.7 123.0 L525.4 127.5 L529.2 134.1 L532.9 126.1 L536.7 117.5 L540.4 105.8 L544.1 90.9 L547.9 81.8 L551.6 98.4 L555.4 110.7 L559.1 121.8 L562.8 138.7 L566.6 133.2 L570.3 114.1 L574.1 117.8 L577.8 109.5 L581.5 122.1 L585.3 149.3 L589.0 143.3 L592.7 148.1 L596.5 139.5 L600.2 131.2 L604.0 200.2 L607.7 219.1 L611.4 221.9 L615.2 252.2 L618.9 248.5 L622.7 253.9 L626.4 259.4 L630.1 266.5 L633.9 264.0 L637.6 258.2 L641.4 251.1 L645.1 253.7 L648.8 256.2 L652.6 250.8 L656.3 247.1 L660.1 243.9 L663.8 233.1 L667.5 237.1 L671.3 220.5 L675.0 199.0 L678.8 177.9 L682.5 190.2 L686.2 201.9 L690.0 220.5 L693.7 225.9 L697.5 236.2 L701.2 257.9 L704.9 249.1 L708.7 257.1 L712.4 265.7 L716.2 279.1 L719.9 288.8 L723.6 286.3 L727.4 277.7 L731.1 282.8 L734.8 284.3 L738.6 285.7 L742.3 283.7 L746.1 274.8 L749.8 277.1 L753.5 275.1 L757.3 268.0 L761.0 238.2 L764.8 225.1 L768.5 215.6 L772.2 203.6 L776.0 177.6 L779.7 197.9 L783.5 192.7 L787.2 190.2 L790.9 175.0 L794.7 169.9 L798.4 177.6 L802.2 225.6 L805.9 229.9 L809.6 226.8 L813.4 231.1 L817.1 225.9 L820.9 249.4 L824.6 241.1 L828.3 229.1 L832.1 220.8 L835.8 233.6 L839.6 249.4 L843.3 262.2 L847.0 268.2 L850.8 272.8 L854.5 278.3 L858.3 284.0 L862.0 286.8 L865.7 295.7 L869.5 295.1 L873.2 291.1 L876.9 292.6 L880.7 292.8 L884.4 290.8 L888.2 298.8 L891.9 302.6 L895.6 308.9 L899.4 312.0 L903.1 309.7 L906.9 306.0 L910.6 301.4 L914.3 290.6 L918.1 276.0 L921.8 272.5 L925.6 268.0 L929.3 255.1 L933.0 243.6 L936.8 241.9 L940.5 249.4 L944.3 244.2 L948.0 247.9"/>
@@ -712,6 +712,140 @@
       try { localStorage.setItem('kp-theme', next); } catch (e) {}
       sync();
     });
+  })();
+</script>
+
+<!-- Live Fear & Greed: fetch from same-origin proxy (/api/fear-greed) and repaint.
+     Progressive enhancement: if the fetch fails, the baked snapshot stays. -->
+<script>
+  (function () {
+    var MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    // Gauge geometry (matches the baked SVG)
+    var GCX = 130, GCY = 138, NEEDLE_R = 82;
+    // Chart plot box (matches the baked SVG viewBox 0 0 1000 360)
+    var PL = 58, PR = 948, PT = 26, PB = 312;
+
+    function $(id) { return document.getElementById(id); }
+    function labelFor(v) {
+      return v < 25 ? 'Extreme Fear' : v < 45 ? 'Fear' : v < 55 ? 'Neutral' : v < 75 ? 'Greed' : 'Extreme Greed';
+    }
+    function colorFor(v) {
+      return v < 25 ? '#e5484d' : v < 45 ? '#ef8e4b' : v < 55 ? '#dcc24a' : v < 75 ? '#5bb87a' : 'var(--accent)';
+    }
+    function fmtDate(iso) {
+      var p = String(iso).slice(0, 10).split('-');
+      if (p.length < 3) return '';
+      return parseInt(p[2], 10) + ' ' + MON[parseInt(p[1], 10) - 1] + ' ' + p[0];
+    }
+    function niceNum(x, round) {
+      var exp = Math.floor(Math.log10(x)), f = x / Math.pow(10, exp), nf;
+      if (round) nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10;
+      else nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+      return nf * Math.pow(10, exp);
+    }
+    function niceRange(min, max) {
+      if (max <= min) max = min + 1;
+      var step = niceNum(niceNum(max - min, false) / 4, true);
+      var lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, ticks = [];
+      for (var v = lo; v <= hi + 1e-6; v += step) ticks.push(Math.round(v));
+      return { lo: lo, hi: hi, ticks: ticks };
+    }
+
+    function gauge(value) {
+      var v = Math.max(0, Math.min(100, value));
+      var a = Math.PI * (180 - v * 1.8) / 180;
+      return [GCX + NEEDLE_R * Math.cos(a), GCY - NEEDLE_R * Math.sin(a)];
+    }
+
+    function buildChart(series) {
+      var n = series.length;
+      if (n < 2) return;
+      var jvals = series.map(function (d) { return d.jci; });
+      var r = niceRange(Math.min.apply(null, jvals), Math.max.apply(null, jvals));
+      var x = function (i) { return PL + i / (n - 1) * (PR - PL); };
+      var yJ = function (v) { return PB - (v - r.lo) / (r.hi - r.lo) * (PB - PT); };
+      var yF = function (v) { return PB - v / 100 * (PB - PT); };
+      var jp = [], fp = [];
+      for (var i = 0; i < n; i++) {
+        jp.push(x(i).toFixed(1) + ' ' + yJ(series[i].jci).toFixed(1));
+        fp.push(x(i).toFixed(1) + ' ' + yF(series[i].fg).toFixed(1));
+      }
+      var area = 'M' + PL.toFixed(1) + ' ' + PB.toFixed(1) + ' L' + jp.join(' L') + ' L' + PR.toFixed(1) + ' ' + PB.toFixed(1) + ' Z';
+      var jline = 'M' + jp.join(' L');
+      var fline = 'M' + fp.join(' L');
+      var lastF = fp[fp.length - 1].split(' ');
+
+      var svg = '<path class="fg-area" d="' + area + '"/>';
+      svg += '<path class="fg-jline" d="' + jline + '"/>';
+      svg += '<path class="fg-line" d="' + fline + '"/>';
+      svg += '<circle class="fg-dot" cx="' + lastF[0] + '" cy="' + lastF[1] + '" r="4"/>';
+      // left axis (JCI)
+      r.ticks.forEach(function (t) {
+        svg += '<text x="48" y="' + (yJ(t) + 3.5).toFixed(1) + '" class="ax ax-l">' + t.toLocaleString('en-US') + '</text>';
+      });
+      // right axis (Fear & Greed)
+      [0, 25, 50, 75, 100].forEach(function (t) {
+        svg += '<text x="958" y="' + (yF(t) + 3.5).toFixed(1) + '" class="ax ax-r">' + t + '</text>';
+      });
+      // month labels, density + min-gap based on viewport so they never crowd
+      var sm = matchMedia('(max-width:620px)').matches, md = matchMedia('(max-width:760px)').matches;
+      var font = sm ? 21 : md ? 16 : 12, minGap = font * 6 * 0.66, half = minGap / 2;
+      var firsts = [], seen = {};
+      for (var k = 0; k < n; k++) { var ym = series[k].date.slice(0, 7); if (!seen[ym]) { seen[ym] = 1; firsts.push(k); } }
+      var m = firsts.length, lastC = -1e9, endC = PR - half;
+      for (var j = 0; j < m; j++) {
+        var idx = firsts[j], isFirst = j === 0, isLast = j === m - 1;
+        var xx = isLast ? PR : x(idx);
+        // effective visual center: first label is left-anchored, last is right-anchored
+        var c = isLast ? endC : isFirst ? xx + half : xx;
+        if (!isLast) {
+          if (c - lastC < minGap) continue;     // clears the previous label
+          if (endC - c < minGap) continue;       // leaves room for the final label
+        }
+        var dt = new Date(series[idx].date + 'T00:00:00Z');
+        var lab = MON[dt.getUTCMonth()] + '-' + (String(dt.getUTCFullYear()).slice(2));
+        var cls = 'ax ax-x' + (isFirst ? ' ax-x-first' : '') + (isLast ? ' ax-x-last' : '');
+        svg += '<text x="' + xx.toFixed(1) + '" y="336" class="' + cls + '">' + lab + '</text>';
+        lastC = c;
+      }
+      $('fg-chart').innerHTML = svg;
+    }
+
+    function render(data) {
+      if (!data || typeof data.current !== 'number' || !Array.isArray(data.series)) return;
+      var v = data.current, col = colorFor(v), label = (data.label || labelFor(v));
+      var valEl = $('fg-val'), clsEl = $('fg-cls'), gaugeEl = $('fg-gauge'), needle = $('fg-needle');
+      if (valEl) { valEl.textContent = Math.round(v); valEl.style.color = col; }
+      if (clsEl) { clsEl.textContent = label.toUpperCase(); clsEl.style.color = col; }
+      if (needle) { var p = gauge(v); needle.setAttribute('x2', p[0].toFixed(1)); needle.setAttribute('y2', p[1].toFixed(1)); }
+      if (gaugeEl) gaugeEl.setAttribute('aria-label', 'Fear and Greed gauge, current value ' + Math.round(v) + ' out of 100, ' + label.toLowerCase());
+      if (data.asOf && $('fg-asof')) $('fg-asof').textContent = 'AS OF ' + fmtDate(data.asOf);
+      if (data.stats) {
+        if ($('fg-avg') && data.stats.avg30 != null) $('fg-avg').textContent = Math.round(data.stats.avg30);
+        if ($('fg-high') && data.stats.high1y != null) $('fg-high').textContent = Math.round(data.stats.high1y);
+        if ($('fg-low') && data.stats.low1y != null) $('fg-low').textContent = Math.round(data.stats.low1y);
+      }
+      buildChart(data.series);
+      window.__fgData = data;
+    }
+
+    function load() {
+      fetch('/api/fear-greed', { headers: { accept: 'application/json' } })
+        .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status); })
+        .then(render)
+        .catch(function () { /* keep the baked snapshot on any failure */ });
+    }
+
+    // Re-flow only the month-label density on resize (paths scale via viewBox).
+    var rt;
+    window.addEventListener('resize', function () {
+      if (!window.__fgData) return;
+      clearTimeout(rt);
+      rt = setTimeout(function () { buildChart(window.__fgData.series); }, 200);
+    });
+
+    if (document.readyState !== 'loading') load();
+    else document.addEventListener('DOMContentLoaded', load);
   })();
 </script>
 
