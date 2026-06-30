@@ -332,10 +332,16 @@
   .hm-list::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
   .hm-row{display:flex;align-items:center;gap:9px;padding:4px 12px;font-size:11px;line-height:1.4;}
   .hm-list .hm-row + .hm-row{border-top:1px solid var(--line);}
-  /* highlight the active/hovered row by direction: green up, red down */
-  .hm-list .hm-row.up.on,.hm-list .hm-row.up:hover{background:rgba(46,158,91,.22);}
-  .hm-list .hm-row.down.on,.hm-list .hm-row.down:hover{background:rgba(229,72,77,.22);}
-  .hm-list .hm-row.flat.on,.hm-list .hm-row.flat:hover{background:var(--surface);}
+  .hm-list .hm-row:hover{background:var(--surface);}
+  /* the featured (hovered) ticker block is tinted by direction: green up, red down */
+  .hm-feat.up{background:#2e9e5b;}
+  .hm-feat.down{background:#e5484d;}
+  .hm-feat.up,.hm-feat.down{color:#fff;}
+  .hm-feat.up .hm-row-c,.hm-feat.down .hm-row-c,
+  .hm-feat.up .hm-row-p,.hm-feat.down .hm-row-p{color:#fff !important;}
+  .hm-feat.up .hm-feat-name,.hm-feat.down .hm-feat-name{color:rgba(255,255,255,.82);}
+  .hm-feat.up .hm-sp polyline,.hm-feat.down .hm-sp polyline{stroke:#fff !important;}
+  .hm-tile-spark{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.1;vector-effect:non-scaling-stroke;pointer-events:none;}
   .hm-row-t{font-weight:600;width:48px;flex:none;}
   .hm-row-p{width:66px;text-align:right;color:var(--dim);flex:none;}
   .hm-row-c{width:56px;text-align:right;font-weight:600;flex:none;}
@@ -1139,6 +1145,18 @@
             var ty = showPct ? (nd.y + nd.h / 2 - fs * 0.15) : (nd.y + nd.h / 2 + fs * 0.34);
             svg += '<text class="hm-lbl" x="' + cx + '" y="' + ty.toFixed(1) + '" font-size="' + fs.toFixed(1) + '" text-anchor="middle">' + esc(t.ticker) + '</text>';
             if (showPct) svg += '<text class="hm-pct" x="' + cx + '" y="' + (ty + fs * 1.05).toFixed(1) + '" font-size="' + (fs * 0.8).toFixed(1) + '" text-anchor="middle">' + pctStr(t.pct) + '</text>';
+            // larger tiles also get a faint sparkline along the bottom; tiles without
+            // spark (or too small to clear the % label) just skip it
+            var sp = t.spark;
+            if (showPct && nd.w > 70 && nd.h > 74 && sp && sp.length >= 2) {
+              var smn = Infinity, smx = -Infinity, q;
+              for (q = 0; q < sp.length; q++) { if (sp[q] < smn) smn = sp[q]; if (sp[q] > smx) smx = sp[q]; }
+              var srng = (smx - smn) || 1;
+              var bx = nd.x + 7, bw = nd.w - 14, bbot = nd.y + nd.h - 7, bh = 13;
+              var spts = '';
+              for (q = 0; q < sp.length; q++) spts += (bx + q / (sp.length - 1) * bw).toFixed(1) + ',' + (bbot - (sp[q] - smn) / srng * bh).toFixed(1) + ' ';
+              svg += '<polyline class="hm-tile-spark" points="' + spts.trim() + '"/>';
+            }
           }
         }
       }
@@ -1172,7 +1190,7 @@
       var grp = (data.groups && data.groups[t.gk]) || [t];
       var html = '<div class="hm-panel-head">' + esc(t.sector.toUpperCase()) + ' — ' + esc(t.sub.toUpperCase()) +
         ' · ' + grp.length + '</div>' +
-        '<div class="hm-feat">' + row(t, true, false) + '<div class="hm-feat-name">' + esc(t.name) + ' · MKT CAP ' + esc(caps(t.cap)) + '</div></div><div class="hm-list">';
+        '<div class="hm-feat ' + (t.pct > 0 ? 'up' : t.pct < 0 ? 'down' : 'flat') + '">' + row(t, true, false) + '<div class="hm-feat-name">' + esc(t.name) + ' · MKT CAP ' + esc(caps(t.cap)) + '</div></div><div class="hm-list">';
       for (var k = 0; k < grp.length; k++) html += row(grp[k], false, grp[k] === t);
       html += '</div>';
       PANEL.innerHTML = html;
