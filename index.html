@@ -153,6 +153,16 @@
   .hero .mono-note{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--mute);margin:0 0 42px;}
   .hero .cta{display:flex;gap:14px;flex-wrap:wrap;}
   .hero .cta .btn{padding:17px 28px;font-size:12px;}
+  /* live-data quick links — a second way into the sentiment + heatmap sections */
+  .hero-live{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:26px;}
+  .hero-live .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mute);}
+  .live-chip{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.06em;color:var(--dim);text-decoration:none;padding:8px 13px;
+    border:1px solid var(--line-2);transition:border-color .18s,color .18s,transform .18s;}
+  .live-chip:hover{border-color:var(--accent);color:var(--text);transform:translateY(-2px);}
+  .live-chip .dot{width:6px;height:6px;background:var(--accent);display:inline-block;animation:kp-blink 1.6s steps(1) infinite;}
+  .live-chip .arr{color:var(--mute);transition:color .18s,transform .18s;}
+  .live-chip:hover .arr{color:var(--accent);transform:translateY(2px);}
 
   /* ---- terminal card ---- */
   .terminal{width:100%;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--elev);}
@@ -517,6 +527,11 @@
       <div class="cta reveal" style="animation-delay:.28s">
         <a class="btn btn--primary" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">JOIN THE DISCORD →</a>
         <a class="btn btn--ghost" href="#apps">SEE THE TOOLS</a>
+      </div>
+      <div class="hero-live reveal" style="animation-delay:.34s">
+        <span class="lbl">LIVE NOW //</span>
+        <a class="live-chip" href="#sentiment"><span class="dot"></span>Fear &amp; Greed Index<span class="arr">↓</span></a>
+        <a class="live-chip" href="#heatmap"><span class="dot"></span>IDX Market Heatmap<span class="arr">↓</span></a>
       </div>
     </div>
 
