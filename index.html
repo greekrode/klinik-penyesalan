@@ -279,7 +279,7 @@
   .fg-stats span{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--mute);}
   .fg-stats b{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);}
 
-  .fg-chart-body{padding:24px 22px 18px;display:flex;flex-direction:column;flex:1;}
+  .fg-chart-body{padding:24px 22px 18px;display:flex;flex-direction:column;flex:1;position:relative;}
   .fg-chart{width:100%;height:auto;display:block;flex:1;overflow:visible;}
   .fg-chart .ax{font-family:var(--mono);font-size:12px;fill:var(--mute);}
   .fg-chart .ax-l{text-anchor:end;}
@@ -296,6 +296,22 @@
   .fg-legend i{display:inline-block;width:15px;height:10px;margin-right:8px;vertical-align:middle;}
   .fg-legend .sw-jci{background:var(--jci-line);opacity:.55;}
   .fg-legend .sw-fg{height:3px;background:var(--accent);}
+
+  /* hover crosshair + readout (cursor is set in JS once live data renders) */
+  #fg-cursor{pointer-events:none;transition:opacity .12s ease;}
+  .fg-cross{stroke:var(--line-2);stroke-width:1;vector-effect:non-scaling-stroke;}
+  .fg-cross-fg{fill:var(--accent);stroke:var(--surface);stroke-width:2;}
+  .fg-cross-jci{fill:var(--jci-line);stroke:var(--surface);stroke-width:2;}
+  .fg-tip{position:absolute;left:0;top:0;z-index:6;pointer-events:none;opacity:0;
+    transition:opacity .12s ease;background:var(--surface-2);border:1px solid var(--line-2);
+    box-shadow:var(--elev);padding:9px 11px;font-family:var(--mono);font-size:11px;
+    color:var(--text);white-space:nowrap;}
+  .fg-tip-date{color:var(--mute);font-size:9px;letter-spacing:.12em;margin-bottom:7px;}
+  .fg-tip-row{display:flex;align-items:center;gap:8px;line-height:1.7;}
+  .fg-tip-row b{font-weight:600;margin-left:auto;padding-left:16px;}
+  .fg-tip-sw{width:9px;height:9px;border-radius:2px;display:inline-block;flex:none;}
+  .fg-tip-sw.fg{background:var(--accent);}
+  .fg-tip-sw.jci{background:var(--jci-line);}
 
   /* ---- responsive ---- */
   @media (max-width:900px){
@@ -646,6 +662,7 @@
             <span><i class="sw-jci"></i>JCI LEVEL</span>
             <span><i class="sw-fg"></i>FEAR &amp; GREED INDEX</span>
           </div>
+          <div class="fg-tip" id="fg-tip" aria-hidden="true"></div>
         </div>
       </div>
     </div>
@@ -737,6 +754,11 @@
       if (p.length < 3) return '';
       return parseInt(p[2], 10) + ' ' + MON[parseInt(p[1], 10) - 1] + ' ' + p[0];
     }
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
     function niceNum(x, round) {
       var exp = Math.floor(Math.log10(x)), f = x / Math.pow(10, exp), nf;
       if (round) nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10;
@@ -775,7 +797,8 @@
       var fline = 'M' + fp.join(' L');
       var lastF = fp[fp.length - 1].split(' ');
 
-      var svg = '<path class="fg-area" d="' + area + '"/>';
+      var svg = '<rect class="fg-capture" x="' + PL + '" y="' + PT + '" width="' + (PR - PL) + '" height="' + (PB - PT) + '" fill="transparent" pointer-events="all"/>';
+      svg += '<path class="fg-area" d="' + area + '"/>';
       svg += '<path class="fg-jline" d="' + jline + '"/>';
       svg += '<path class="fg-line" d="' + fline + '"/>';
       svg += '<circle class="fg-dot" cx="' + lastF[0] + '" cy="' + lastF[1] + '" r="4"/>';
@@ -808,8 +831,67 @@
         svg += '<text x="' + xx.toFixed(1) + '" y="336" class="' + cls + '">' + lab + '</text>';
         lastC = c;
       }
-      $('fg-chart').innerHTML = svg;
+      svg += '<g id="fg-cursor" opacity="0">' +
+        '<line class="fg-cross" x1="0" y1="' + PT + '" x2="0" y2="' + PB + '"/>' +
+        '<circle class="fg-cross-jci" r="4"/><circle class="fg-cross-fg" r="4.5"/></g>';
+      var chartEl = $('fg-chart');
+      chartEl.innerHTML = svg;
+      chartEl.style.cursor = 'crosshair'; // becomes interactive only with live data
+      chartState = { series: series, n: n, jLo: r.lo, jHi: r.hi };
     }
+
+    // ---- hover crosshair + readout ----
+    var chartState = null, hoverRaf = 0;
+    function hideCursor() {
+      if (hoverRaf) { cancelAnimationFrame(hoverRaf); hoverRaf = 0; }
+      var g = $('fg-cursor'); if (g) g.setAttribute('opacity', '0');
+      var t = $('fg-tip'); if (t) t.style.opacity = '0';
+    }
+    function showCursor(clientX, clientY) {
+      var s = chartState; if (!s) return;
+      var svg = $('fg-chart'), g = $('fg-cursor'), tip = $('fg-tip');
+      if (!svg || !g || !tip) return;
+      var rect = svg.getBoundingClientRect(); if (!rect.width) return;
+      var i = Math.round(((clientX - rect.left) / rect.width * 1000 - PL) / (PR - PL) * (s.n - 1));
+      i = Math.max(0, Math.min(s.n - 1, i));
+      var cx = PL + (s.n > 1 ? i / (s.n - 1) : 0) * (PR - PL);
+      var d = s.series[i], fg = d.fg, jci = d.jci;
+      var yf = PB - fg / 100 * (PB - PT);
+      var jSpan = s.jHi - s.jLo;
+      var yj = jSpan ? PB - (jci - s.jLo) / jSpan * (PB - PT) : (PT + PB) / 2;
+      var ln = g.children[0], dj = g.children[1], df = g.children[2];
+      ln.setAttribute('x1', cx); ln.setAttribute('x2', cx);
+      dj.setAttribute('cx', cx); dj.setAttribute('cy', yj.toFixed(1));
+      df.setAttribute('cx', cx); df.setAttribute('cy', yf.toFixed(1));
+      g.setAttribute('opacity', '1');
+      var col = colorFor(fg), lab = labelFor(fg);
+      tip.innerHTML = '<div class="fg-tip-date">' + esc(fmtDate(d.date)) + '</div>' +
+        '<div class="fg-tip-row"><span class="fg-tip-sw fg"></span>F&amp;G<b style="color:' + col + '">' + fg + ' · ' + lab.toUpperCase() + '</b></div>' +
+        '<div class="fg-tip-row"><span class="fg-tip-sw jci"></span>JCI<b>' + Math.round(jci).toLocaleString('en-US') + '</b></div>';
+      var br = tip.parentElement.getBoundingClientRect();
+      var px = rect.left - br.left + cx / 1000 * rect.width;
+      var py = rect.top - br.top + yf / 360 * rect.height;
+      tip.style.opacity = '1';
+      var tw = tip.offsetWidth, th = tip.offsetHeight;
+      var left = px + 16; if (left + tw > br.width - 4) left = px - tw - 16; if (left < 4) left = 4;
+      var top = py - th - 14; if (top < 4) top = py + 18; if (top + th > br.height - 4) top = br.height - th - 4;
+      tip.style.left = left.toFixed(0) + 'px'; tip.style.top = top.toFixed(0) + 'px';
+    }
+    function onMove(ev) {
+      var t = ev.touches && ev.touches[0];
+      var cx = t ? t.clientX : ev.clientX, cy = t ? t.clientY : ev.clientY;
+      if (cx == null) return;
+      if (hoverRaf) cancelAnimationFrame(hoverRaf);
+      hoverRaf = requestAnimationFrame(function () { hoverRaf = 0; showCursor(cx, cy); });
+    }
+    (function bindHover() {
+      var svg = $('fg-chart'); if (!svg) return;
+      svg.addEventListener('mousemove', onMove);
+      svg.addEventListener('mouseleave', hideCursor);
+      svg.addEventListener('touchstart', onMove, { passive: true });
+      svg.addEventListener('touchmove', onMove, { passive: true });
+      svg.addEventListener('touchend', hideCursor);
+    })();
 
     function render(data) {
       if (!data || typeof data.current !== 'number' || !Array.isArray(data.series)) return;
@@ -825,8 +907,16 @@
         if ($('fg-high') && data.stats.high1y != null) $('fg-high').textContent = Math.round(data.stats.high1y);
         if ($('fg-low') && data.stats.low1y != null) $('fg-low').textContent = Math.round(data.stats.low1y);
       }
-      buildChart(data.series);
-      window.__fgData = data;
+      // normalise series on ingest: drop any point without finite numeric fg/jci,
+      // coerce date to a string. Guarantees only safe numbers/strings flow onward.
+      var series = [];
+      for (var k = 0; k < data.series.length; k++) {
+        var pt = data.series[k]; if (!pt) continue;
+        var fg = +pt.fg, jci = +pt.jci;
+        if (!isFinite(fg) || !isFinite(jci)) continue;
+        series.push({ date: String(pt.date == null ? '' : pt.date), fg: fg, jci: jci });
+      }
+      if (series.length >= 2) { buildChart(series); window.__fgData = { series: series }; }
     }
 
     function load() {
