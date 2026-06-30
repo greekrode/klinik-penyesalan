@@ -135,6 +135,9 @@
   .ticker-group{display:flex;}
   .ticker-group span{padding:10px 30px;}
   .ticker-group .up{color:var(--accent);}
+  .ticker-group .down{color:var(--fear);}
+  .ticker-group .kp-jci b,.ticker-group .kp-fg b{font-weight:600;}
+  .ticker-group .kp-jci:empty,.ticker-group .kp-fg:empty{display:none;}
 
   /* ---- hero ---- */
   .hero{position:relative;overflow:hidden;}
@@ -432,6 +435,8 @@
 <div class="ticker">
   <div class="ticker-track">
     <div class="ticker-group">
+      <span class="kp-jci"></span>
+      <span class="kp-fg"></span>
       <span><span class="up">▲</span>&nbsp; STOCK TRANSACTION ANALYSIS</span>
       <span><span class="up">▲</span>&nbsp; IPO ANALYTICS</span>
       <span><span class="up">▲</span>&nbsp; 1% SHAREHOLDERS DATA</span>
@@ -440,6 +445,8 @@
       <span><span class="up">▲</span>&nbsp; JOIN THE DISCORD</span>
     </div>
     <div class="ticker-group" aria-hidden="true">
+      <span class="kp-jci"></span>
+      <span class="kp-fg"></span>
       <span><span class="up">▲</span>&nbsp; STOCK TRANSACTION ANALYSIS</span>
       <span><span class="up">▲</span>&nbsp; IPO ANALYTICS</span>
       <span><span class="up">▲</span>&nbsp; 1% SHAREHOLDERS DATA</span>
@@ -893,6 +900,20 @@
       svg.addEventListener('touchend', hideCursor);
     })();
 
+    // header ticker: latest JCI + day-over-day change, and the F&G value
+    function setTicker(series, cur) {
+      if (!series.length) return;
+      var n = series.length, last = series[n - 1].jci, prev = n > 1 ? series[n - 2].jci : last;
+      var pts = last - prev, pct = prev ? pts / prev * 100 : 0;
+      var up = pts >= 0, cls = up ? 'up' : 'down', arr = up ? '▲' : '▼', sg = up ? '+' : '−';
+      var jciHtml = 'JCI <b>' + Math.round(last).toLocaleString('en-US') + '</b> ' +
+        '<b class="' + cls + '">' + arr + ' ' + sg + Math.abs(pct).toFixed(2) + '% · ' + sg + Math.abs(Math.round(pts)).toLocaleString('en-US') + '</b>';
+      var fgHtml = 'FEAR &amp; GREED <b style="color:' + colorFor(cur) + '">' + Math.round(cur) + ' · ' + labelFor(cur).toUpperCase() + '</b>';
+      var js = document.querySelectorAll('.kp-jci'), fs = document.querySelectorAll('.kp-fg'), i;
+      for (i = 0; i < js.length; i++) js[i].innerHTML = jciHtml;
+      for (i = 0; i < fs.length; i++) fs[i].innerHTML = fgHtml;
+    }
+
     function render(data) {
       if (!data || typeof data.current !== 'number' || !Array.isArray(data.series)) return;
       var v = data.current, col = colorFor(v), label = (data.label || labelFor(v));
@@ -916,6 +937,7 @@
         if (!isFinite(fg) || !isFinite(jci)) continue;
         series.push({ date: String(pt.date == null ? '' : pt.date), fg: fg, jci: jci });
       }
+      if (series.length) setTicker(series, v);
       if (series.length >= 2) { buildChart(series); window.__fgData = { series: series }; }
     }
 
