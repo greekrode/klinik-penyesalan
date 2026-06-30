@@ -153,6 +153,16 @@
   .hero .mono-note{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--mute);margin:0 0 42px;}
   .hero .cta{display:flex;gap:14px;flex-wrap:wrap;}
   .hero .cta .btn{padding:17px 28px;font-size:12px;}
+  /* live-data quick links — a second way into the sentiment + heatmap sections */
+  .hero-live{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:26px;}
+  .hero-live .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mute);}
+  .live-chip{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.06em;color:var(--dim);text-decoration:none;padding:8px 13px;
+    border:1px solid var(--line-2);transition:border-color .18s,color .18s,transform .18s;}
+  .live-chip:hover{border-color:var(--accent);color:var(--text);transform:translateY(-2px);}
+  .live-chip .dot{width:6px;height:6px;background:var(--accent);display:inline-block;animation:kp-blink 1.6s steps(1) infinite;}
+  .live-chip .arr{color:var(--mute);transition:color .18s,transform .18s;}
+  .live-chip:hover .arr{color:var(--accent);transform:translateY(2px);}
 
   /* ---- terminal card ---- */
   .terminal{width:100%;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--elev);}
@@ -300,6 +310,53 @@
   .fg-legend .sw-jci{background:var(--jci-line);opacity:.55;}
   .fg-legend .sw-fg{height:3px;background:var(--accent);}
 
+  /* ---- market heatmap (treemap) ---- */
+  .hm-card{display:flex;flex-direction:column;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--elev);}
+  .hm-card .terminal-head .fg-head-meta{color:var(--mute);letter-spacing:.06em;}
+  .hm-body{padding:16px 16px 18px;position:relative;}
+  .hm-svg{width:100%;height:auto;display:block;}
+  .hm-tile{stroke:var(--surface);stroke-width:1.2;vector-effect:non-scaling-stroke;}
+  .hm-tile:hover{stroke:var(--text);stroke-width:2;}
+  .hm-lbl{fill:#fff;font-family:var(--mono);font-weight:600;pointer-events:none;
+    paint-order:stroke;stroke:rgba(0,0,0,.42);stroke-width:.5px;}
+  .hm-pct{fill:rgba(255,255,255,.85);font-family:var(--mono);pointer-events:none;}
+  .hm-sec{fill:var(--dim);font-family:var(--mono);letter-spacing:.1em;pointer-events:none;}
+  .hm-status{padding:72px 20px;text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--mute);}
+  .hm-legend{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:15px;
+    font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--mute);}
+  .hm-legend-bar{width:180px;max-width:42vw;height:8px;border-radius:2px;
+    background:linear-gradient(90deg,#e5484d,#9aa3ab 50%,#2e9e5b);}
+  /* hover panel: the hovered tile's sub-sector peers, with sparklines */
+  .hm-panel{position:absolute;left:0;top:0;z-index:6;pointer-events:none;opacity:0;width:266px;
+    transition:opacity .1s ease;background:var(--surface-2);border:1px solid var(--line-2);
+    box-shadow:var(--elev-hi);font-family:var(--mono);color:var(--text);overflow:hidden;}
+  .hm-panel.on{opacity:1;pointer-events:auto;} /* interactive so the list can scroll */
+  .hm-panel-head{font-size:9.5px;letter-spacing:.1em;color:var(--dim);padding:9px 12px;border-bottom:1px solid var(--line);}
+  .hm-feat{padding:9px 12px 10px;border-bottom:1px solid var(--line);}
+  .hm-feat .hm-row{font-size:14px;padding:0;}
+  .hm-feat .hm-row-t{flex:none;width:auto;min-width:48px;}
+  .hm-feat-name{color:var(--mute);font-size:10px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hm-list{padding:3px 0;max-height:280px;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:var(--line-2) transparent;}
+  .hm-list::-webkit-scrollbar{width:7px;}
+  .hm-list::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
+  .hm-row{display:flex;align-items:center;gap:9px;padding:4px 12px;font-size:11px;line-height:1.4;}
+  .hm-list .hm-row + .hm-row{border-top:1px solid var(--line);}
+  .hm-list .hm-row:hover{background:var(--surface);}
+  /* the featured (hovered) ticker block is tinted by direction: green up, red down */
+  .hm-feat.up{background:#2e9e5b;}
+  .hm-feat.down{background:#e5484d;}
+  .hm-feat.up,.hm-feat.down{color:#fff;}
+  .hm-feat.up .hm-row-c,.hm-feat.down .hm-row-c,
+  .hm-feat.up .hm-row-p,.hm-feat.down .hm-row-p{color:#fff !important;}
+  .hm-feat.up .hm-feat-name,.hm-feat.down .hm-feat-name{color:rgba(255,255,255,.82);}
+  .hm-feat.up .hm-sp polyline,.hm-feat.down .hm-sp polyline{stroke:#fff !important;}
+  .hm-tile-spark{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.1;vector-effect:non-scaling-stroke;pointer-events:none;}
+  .hm-row-t{font-weight:600;width:48px;flex:none;}
+  .hm-row-p{width:66px;text-align:right;color:var(--dim);flex:none;}
+  .hm-row-c{width:56px;text-align:right;font-weight:600;flex:none;}
+  .hm-sp{flex:1;min-width:18px;display:block;}
+
   /* hover crosshair + readout (cursor is set in JS once live data renders) */
   #fg-cursor{pointer-events:none;transition:opacity .12s ease;}
   .fg-cross{stroke:var(--line-2);stroke-width:1;vector-effect:non-scaling-stroke;}
@@ -422,6 +479,7 @@
     <nav class="main">
       <a class="nav-link" href="#apps">TOOLS</a>
       <a class="nav-link" href="#sentiment">SENTIMENT</a>
+      <a class="nav-link" href="#heatmap">HEATMAP</a>
       <a class="nav-link" href="#community">COMMUNITY</a>
       <button class="toggle" id="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false">
         <span class="dot"></span><span class="toggle-label">LIGHT</span>
@@ -469,6 +527,11 @@
       <div class="cta reveal" style="animation-delay:.28s">
         <a class="btn btn--primary" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">JOIN THE DISCORD →</a>
         <a class="btn btn--ghost" href="#apps">SEE THE TOOLS</a>
+      </div>
+      <div class="hero-live reveal" style="animation-delay:.34s">
+        <span class="lbl">LIVE NOW //</span>
+        <a class="live-chip" href="#sentiment"><span class="dot"></span>Fear &amp; Greed Index<span class="arr">↓</span></a>
+        <a class="live-chip" href="#heatmap"><span class="dot"></span>IDX Market Heatmap<span class="arr">↓</span></a>
       </div>
     </div>
 
@@ -676,6 +739,36 @@
   </div>
 </section>
 
+<!-- market heatmap -->
+<section class="section" id="heatmap">
+  <div class="wrap section-inner">
+    <div class="apps-head">
+      <div>
+        <div class="eyebrow">MARKET MAP</div>
+        <h2>The whole board, at a glance.</h2>
+      </div>
+      <p class="intro">Every IDX stock sized by market cap, coloured by today's move, grouped by sector.</p>
+    </div>
+    <div class="hm-card">
+      <div class="terminal-head">
+        <span>IDX HEATMAP</span>
+        <span class="fg-head-meta" id="hm-asof">—</span>
+      </div>
+      <div class="hm-body">
+        <div class="hm-status" id="hm-status">Loading market heatmap…</div>
+        <div id="hm-wrap" style="display:none">
+          <svg class="hm-svg" id="hm-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="IDX market heatmap: stocks sized by market cap and coloured by daily percent change, grouped by sector"></svg>
+          <div class="hm-legend">
+            <span>−6%</span><span class="hm-legend-bar"></span><span>+6%</span>
+            <span style="margin-left:10px">SIZE = MARKET CAP</span>
+          </div>
+        </div>
+        <div class="hm-panel" id="hm-panel" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- community -->
 <section class="section" id="community">
   <div class="wrap section-inner">
@@ -713,6 +806,7 @@
     <div class="footer-links">
       <a href="#apps">TOOLS</a>
       <a href="#sentiment">SENTIMENT</a>
+      <a href="#heatmap">HEATMAP</a>
       <a href="#community">COMMUNITY</a>
       <a href="https://discord.gg/kpkp88" target="_blank" rel="noopener">DISCORD</a>
     </div>
@@ -959,6 +1053,231 @@
 
     if (document.readyState !== 'loading') load();
     else document.addEventListener('DOMContentLoaded', load);
+  })();
+</script>
+
+<!-- Market heatmap: fetch from same-origin proxy (/api/heatmap), render a
+     sector-grouped treemap (tile size = market cap, colour = daily % change). -->
+<script>
+  (function () {
+    var STATUS = document.getElementById('hm-status'), WRAP = document.getElementById('hm-wrap'),
+        SVG = document.getElementById('hm-svg'), PANEL = document.getElementById('hm-panel'),
+        ASOF = document.getElementById('hm-asof');
+    if (!SVG) return;
+    var W = 1000, HDR = 15, data = null;
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function caps(n) {
+      n = +n; if (!isFinite(n)) return '—';
+      if (n >= 1e12) return (n / 1e12).toFixed(n >= 1e13 ? 0 : 1) + 'T';
+      if (n >= 1e9) return (n / 1e9).toFixed(0) + 'B';
+      if (n >= 1e6) return (n / 1e6).toFixed(0) + 'M';
+      return Math.round(n).toLocaleString('en-US');
+    }
+    function pctStr(p) { return (p > 0 ? '+' : p < 0 ? '−' : '') + Math.abs(p).toFixed(2) + '%'; }
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    function fmtAsOf(iso) {
+      var p = String(iso).slice(0, 10).split('-');
+      if (p.length < 3) return String(iso);
+      return (+p[2]) + ' ' + (MONTHS[(+p[1]) - 1] || p[1]) + ' ' + p[0];
+    }
+    function color(p) {
+      var t = Math.max(-1, Math.min(1, p / 6)), k = Math.abs(t);
+      var neu = [154, 163, 171], to = t >= 0 ? [46, 158, 91] : [229, 72, 77];
+      return 'rgb(' + Math.round(neu[0] + (to[0] - neu[0]) * k) + ',' +
+        Math.round(neu[1] + (to[1] - neu[1]) * k) + ',' + Math.round(neu[2] + (to[2] - neu[2]) * k) + ')';
+    }
+
+    // squarified treemap: lay nodes [{area}] into rect, assigning x/y/w/h
+    function squarify(nodes, x, y, w, h) {
+      var rx = x, ry = y, rw = w, rh = h, row = [], i = 0;
+      function sum(r) { for (var s = 0, k = 0; k < r.length; k++) s += r[k].area; return s; }
+      function worst(r, side) {
+        var s = sum(r); if (s <= 0) return Infinity;
+        var mx = -Infinity, mn = Infinity;
+        for (var k = 0; k < r.length; k++) { var a = r[k].area; if (a > mx) mx = a; if (a < mn) mn = a; }
+        var s2 = s * s, d2 = side * side;
+        return Math.max(d2 * mx / s2, s2 / (d2 * mn));
+      }
+      function place(r) {
+        var s = sum(r), k;
+        if (rw >= rh) { var cw = s / rh, oy = ry; for (k = 0; k < r.length; k++) { var nh = r[k].area / cw; r[k].x = rx; r[k].y = oy; r[k].w = cw; r[k].h = nh; oy += nh; } rx += cw; rw -= cw; }
+        else { var ch = s / rw, ox = rx; for (k = 0; k < r.length; k++) { var nw = r[k].area / ch; r[k].x = ox; r[k].y = ry; r[k].w = nw; r[k].h = ch; ox += nw; } ry += ch; rh -= ch; }
+      }
+      while (i < nodes.length) {
+        var n = nodes[i], side = Math.min(rw, rh);
+        if (!row.length) { row.push(n); i++; continue; }
+        if (worst(row.concat([n]), side) <= worst(row, side)) { row.push(n); i++; }
+        else { place(row); row = []; }
+      }
+      if (row.length) place(row);
+    }
+
+    function build() {
+      if (!data) return;
+      var sm = matchMedia('(max-width:620px)').matches, md = matchMedia('(max-width:900px)').matches;
+      var H = sm ? 1180 : md ? 860 : 600;
+      SVG.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var bySec = {};
+      data.tiles.forEach(function (t) { (bySec[t.sector] = bySec[t.sector] || []).push(t); });
+      var sectors = Object.keys(bySec).map(function (s) {
+        var items = bySec[s], tot = 0; for (var k = 0; k < items.length; k++) tot += items[k].cap;
+        return { name: s, items: items, value: tot, area: tot };
+      }).filter(function (s) { return s.value > 0; });
+      sectors.sort(function (a, b) { return b.value - a.value; });
+      var ctot = 0; sectors.forEach(function (s) { ctot += s.value; });
+      var sc = (W * H) / ctot;
+      sectors.forEach(function (s) { s.area = s.value * sc; });
+      squarify(sectors, 0, 0, W, H);
+
+      var svg = '', tipData = [], di = 0;
+      for (var si = 0; si < sectors.length; si++) {
+        var s = sectors[si];
+        var hasHdr = s.h > HDR + 10 && s.w > 46;
+        var ix = s.x + 1, iy = s.y + (hasHdr ? HDR : 1), iw = s.w - 2, ih = s.h - (hasHdr ? HDR + 1 : 2);
+        if (iw <= 0 || ih <= 0) continue;
+        if (hasHdr) svg += '<text class="hm-sec" x="' + (s.x + 3).toFixed(1) + '" y="' + (s.y + 11).toFixed(1) + '" font-size="9">' + esc(s.name.toUpperCase()) + '</text>';
+        var its = s.items.slice().sort(function (a, b) { return b.cap - a.cap; });
+        var itot = 0; for (var m = 0; m < its.length; m++) itot += its[m].cap;
+        if (itot <= 0) continue;
+        var isc = (iw * ih) / itot;
+        var nodes = its.map(function (t) { return { area: t.cap * isc, ref: t }; });
+        squarify(nodes, ix, iy, iw, ih);
+        for (var k = 0; k < nodes.length; k++) {
+          var nd = nodes[k], t = nd.ref;
+          if (nd.w <= 0 || nd.h <= 0) continue;
+          svg += '<rect class="hm-tile" data-i="' + di + '" x="' + nd.x.toFixed(1) + '" y="' + nd.y.toFixed(1) +
+            '" width="' + nd.w.toFixed(1) + '" height="' + nd.h.toFixed(1) + '" fill="' + color(t.pct) + '"/>';
+          tipData.push(t); di++;
+          if (nd.w > 26 && nd.h > 15) {
+            var fs = Math.max(5, Math.min(nd.w * 0.9 / (t.ticker.length * 0.62), nd.h * 0.46, 13));
+            var cx = (nd.x + nd.w / 2).toFixed(1);
+            var showPct = nd.h > fs * 2.4 && nd.w > 34;
+            var ty = showPct ? (nd.y + nd.h / 2 - fs * 0.15) : (nd.y + nd.h / 2 + fs * 0.34);
+            svg += '<text class="hm-lbl" x="' + cx + '" y="' + ty.toFixed(1) + '" font-size="' + fs.toFixed(1) + '" text-anchor="middle">' + esc(t.ticker) + '</text>';
+            if (showPct) svg += '<text class="hm-pct" x="' + cx + '" y="' + (ty + fs * 1.05).toFixed(1) + '" font-size="' + (fs * 0.8).toFixed(1) + '" text-anchor="middle">' + pctStr(t.pct) + '</text>';
+            // larger tiles also get a faint sparkline along the bottom; tiles without
+            // spark (or too small to clear the % label) just skip it
+            var sp = t.spark;
+            if (showPct && nd.w > 70 && nd.h > 74 && sp && sp.length >= 2) {
+              var smn = Infinity, smx = -Infinity, q;
+              for (q = 0; q < sp.length; q++) { if (sp[q] < smn) smn = sp[q]; if (sp[q] > smx) smx = sp[q]; }
+              var srng = (smx - smn) || 1;
+              var bx = nd.x + 7, bw = nd.w - 14, bbot = nd.y + nd.h - 7, bh = 13;
+              var spts = '';
+              for (q = 0; q < sp.length; q++) spts += (bx + q / (sp.length - 1) * bw).toFixed(1) + ',' + (bbot - (sp[q] - smn) / srng * bh).toFixed(1) + ' ';
+              svg += '<polyline class="hm-tile-spark" points="' + spts.trim() + '"/>';
+            }
+          }
+        }
+      }
+      SVG.innerHTML = svg;
+      window.__hm = tipData;
+    }
+
+    var lastPanelI = -1;
+    function spark(arr, h) {
+      if (!arr || arr.length < 2) return '<span class="hm-sp"></span>';
+      var mn = Infinity, mx = -Infinity, i;
+      for (i = 0; i < arr.length; i++) { if (arr[i] < mn) mn = arr[i]; if (arr[i] > mx) mx = arr[i]; }
+      var rng = (mx - mn) || 1, w = 100, pts = '';
+      for (i = 0; i < arr.length; i++) pts += (i / (arr.length - 1) * w).toFixed(1) + ',' + (h - (arr[i] - mn) / rng * (h - 2) - 1).toFixed(1) + ' ';
+      var up = arr[arr.length - 1] >= arr[0];
+      return '<svg class="hm-sp" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="height:' + h + 'px">' +
+        '<polyline points="' + pts.trim() + '" fill="none" stroke="' + (up ? '#2e9e5b' : '#e5484d') + '" stroke-width="1.3" vector-effect="non-scaling-stroke"/></svg>';
+    }
+    function row(t, feat, on) {
+      var c = t.pct > 0 ? '#2e9e5b' : t.pct < 0 ? '#e5484d' : 'var(--mute)';
+      var dir = t.pct > 0 ? 'up' : t.pct < 0 ? 'down' : 'flat';
+      return '<div class="hm-row ' + dir + (on ? ' on' : '') + '">' +
+        '<span class="hm-row-t">' + esc(t.ticker) + '</span>' + spark(t.spark, feat ? 22 : 14) +
+        '<span class="hm-row-p">' + Math.round(t.price).toLocaleString('en-US') + '</span>' +
+        '<span class="hm-row-c" style="color:' + c + '">' + pctStr(t.pct) + '</span></div>';
+    }
+    function showPanel(i, clientX, clientY) {
+      var t = window.__hm && window.__hm[i]; if (!t) return;
+      if (i === lastPanelI) { PANEL.classList.add('on'); return; } // same tile: keep pinned
+      lastPanelI = i;
+      var grp = (data.groups && data.groups[t.gk]) || [t];
+      var html = '<div class="hm-panel-head">' + esc(t.sector.toUpperCase()) + ' — ' + esc(t.sub.toUpperCase()) +
+        ' · ' + grp.length + '</div>' +
+        '<div class="hm-feat ' + (t.pct > 0 ? 'up' : t.pct < 0 ? 'down' : 'flat') + '">' + row(t, true, false) + '<div class="hm-feat-name">' + esc(t.name) + ' · MKT CAP ' + esc(caps(t.cap)) + '</div></div><div class="hm-list">';
+      for (var k = 0; k < grp.length; k++) html += row(grp[k], false, grp[k] === t);
+      html += '</div>';
+      PANEL.innerHTML = html;
+      PANEL.classList.add('on');
+      var br = PANEL.parentElement.getBoundingClientRect(), pw = PANEL.offsetWidth, ph = PANEL.offsetHeight;
+      var x = clientX - br.left + 16; if (x + pw > br.width - 4) x = clientX - br.left - pw - 16; if (x < 4) x = 4;
+      var y = clientY - br.top + 16; if (y + ph > br.height - 4) y = br.height - ph - 4; if (y < 4) y = 4;
+      PANEL.style.left = x.toFixed(0) + 'px'; PANEL.style.top = y.toFixed(0) + 'px';
+    }
+    function hidePanel() { PANEL.classList.remove('on'); lastPanelI = -1; }
+    // hover-bridge: don't drop the panel when the pointer crosses from a tile
+    // onto the (now interactive, scrollable) panel itself.
+    var hideT;
+    function scheduleHide() { clearTimeout(hideT); hideT = setTimeout(hidePanel, 160); }
+    function cancelHide() { clearTimeout(hideT); }
+    function idxOf(el) { return el && el.getAttribute && el.getAttribute('data-i'); }
+    SVG.addEventListener('mousemove', function (e) {
+      var i = idxOf(e.target);
+      if (i != null) { cancelHide(); showPanel(+i, e.clientX, e.clientY); } else scheduleHide();
+    });
+    SVG.addEventListener('mouseleave', scheduleHide);
+    PANEL.addEventListener('mouseenter', cancelHide);
+    PANEL.addEventListener('mouseleave', scheduleHide);
+    SVG.addEventListener('touchstart', function (e) {
+      var i = idxOf(e.target), tt = e.touches && e.touches[0];
+      if (i != null && tt) { cancelHide(); showPanel(+i, tt.clientX, tt.clientY); }
+    }, { passive: true });
+    // tap outside the panel/heatmap dismisses it on touch
+    document.addEventListener('touchstart', function (e) {
+      if (PANEL.classList.contains('on') && !PANEL.contains(e.target) && !SVG.contains(e.target)) hidePanel();
+    }, { passive: true });
+
+    function fail(msg) { if (STATUS) { STATUS.textContent = msg; STATUS.style.display = ''; } if (WRAP) WRAP.style.display = 'none'; }
+
+    fetch('/api/heatmap', { headers: { accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (j) {
+        if (!j || !Array.isArray(j.tickers)) return fail('Heatmap data unavailable.');
+        var tiles = [];
+        for (var k = 0; k < j.tickers.length; k++) {
+          var t = j.tickers[k]; if (!t) continue;
+          var cap = +t.market_cap; if (!isFinite(cap) || cap <= 0) continue;
+          var spark = [];
+          if (Array.isArray(t.spark)) for (var z = 0; z < t.spark.length; z++) { var v = +t.spark[z]; if (isFinite(v)) spark.push(v); }
+          tiles.push({
+            ticker: String(t.ticker == null ? '' : t.ticker),
+            name: String(t.name == null ? '' : t.name),
+            cap: cap, price: isFinite(+t.close_price) ? +t.close_price : 0,
+            pct: isFinite(+t.change_pct) ? +t.change_pct : 0,
+            sector: (t.sector && String(t.sector)) || 'Other',
+            sub: (t.sub_sector && String(t.sub_sector)) || 'Other',
+            spark: spark
+          });
+        }
+        if (!tiles.length) return fail('No heatmap data yet.');
+        // group by sector + sub-sector for the hover panel; tag each tile with its key
+        var groups = {};
+        for (var g = 0; g < tiles.length; g++) {
+          var tt = tiles[g], key = tt.sector + ' — ' + tt.sub; tt.gk = key;
+          (groups[key] = groups[key] || []).push(tt);
+        }
+        Object.keys(groups).forEach(function (key) { groups[key].sort(function (a, b) { return b.cap - a.cap; }); });
+        data = { broker_date: j.broker_date, tiles: tiles, groups: groups };
+        if (ASOF && j.broker_date) ASOF.textContent = 'AS OF ' + fmtAsOf(j.broker_date);
+        if (STATUS) STATUS.style.display = 'none';
+        if (WRAP) WRAP.style.display = '';
+        build();
+      })
+      .catch(function () { fail('Couldn’t load the heatmap.'); });
+
+    var rt;
+    window.addEventListener('resize', function () { if (!data) return; clearTimeout(rt); rt = setTimeout(build, 200); });
   })();
 </script>
 
