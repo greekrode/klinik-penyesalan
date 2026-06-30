@@ -316,14 +316,23 @@
     font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--mute);}
   .hm-legend-bar{width:180px;max-width:42vw;height:8px;border-radius:2px;
     background:linear-gradient(90deg,#e5484d,#9aa3ab 50%,#2e9e5b);}
-  .hm-tip{position:absolute;left:0;top:0;z-index:6;pointer-events:none;opacity:0;
+  /* hover panel: the hovered tile's sub-sector peers, with sparklines */
+  .hm-panel{position:absolute;left:0;top:0;z-index:6;pointer-events:none;opacity:0;width:266px;
     transition:opacity .1s ease;background:var(--surface-2);border:1px solid var(--line-2);
-    box-shadow:var(--elev);padding:11px 13px;font-family:var(--mono);font-size:11px;color:var(--text);}
-  .hm-tip-top{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600;}
-  .hm-tip-name{color:var(--dim);font-size:10px;margin:5px 0 10px;max-width:230px;}
-  .hm-tip-row{display:flex;justify-content:space-between;gap:20px;line-height:1.75;white-space:nowrap;}
-  .hm-tip-row span{color:var(--mute);}
-  .hm-tip-row b{font-weight:600;}
+    box-shadow:var(--elev-hi);font-family:var(--mono);color:var(--text);overflow:hidden;}
+  .hm-panel-head{font-size:9.5px;letter-spacing:.1em;color:var(--dim);padding:9px 12px;border-bottom:1px solid var(--line);}
+  .hm-feat{padding:9px 12px 10px;border-bottom:1px solid var(--line);}
+  .hm-feat .hm-row{font-size:14px;padding:0;}
+  .hm-feat .hm-row-t{flex:none;width:auto;min-width:48px;}
+  .hm-feat-name{color:var(--mute);font-size:10px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hm-list{padding:3px 0;}
+  .hm-row{display:flex;align-items:center;gap:9px;padding:3px 12px;font-size:11px;line-height:1.4;}
+  .hm-row.on{background:var(--surface);}
+  .hm-row-t{font-weight:600;width:48px;flex:none;}
+  .hm-row-p{width:66px;text-align:right;color:var(--dim);flex:none;}
+  .hm-row-c{width:56px;text-align:right;font-weight:600;flex:none;}
+  .hm-sp{flex:1;min-width:18px;display:block;}
+  .hm-more{padding:7px 12px;font-size:9px;letter-spacing:.1em;color:var(--mute);border-top:1px solid var(--line);}
 
   /* hover crosshair + readout (cursor is set in JS once live data renders) */
   #fg-cursor{pointer-events:none;transition:opacity .12s ease;}
@@ -726,7 +735,7 @@
             <span style="margin-left:10px">SIZE = MARKET CAP</span>
           </div>
         </div>
-        <div class="hm-tip" id="hm-tip" aria-hidden="true"></div>
+        <div class="hm-panel" id="hm-panel" aria-hidden="true"></div>
       </div>
     </div>
   </div>
@@ -1024,7 +1033,7 @@
 <script>
   (function () {
     var STATUS = document.getElementById('hm-status'), WRAP = document.getElementById('hm-wrap'),
-        SVG = document.getElementById('hm-svg'), TIP = document.getElementById('hm-tip'),
+        SVG = document.getElementById('hm-svg'), PANEL = document.getElementById('hm-panel'),
         ASOF = document.getElementById('hm-asof');
     if (!SVG) return;
     var W = 1000, HDR = 15, data = null;
@@ -1124,30 +1133,51 @@
       window.__hm = tipData;
     }
 
-    function showTip(i, clientX, clientY) {
-      var t = window.__hm && window.__hm[i]; if (!t) return;
-      TIP.innerHTML = '<div class="hm-tip-top"><span>' + esc(t.ticker) + '</span><span style="color:' + color(t.pct) + '">' + pctStr(t.pct) + '</span></div>' +
-        '<div class="hm-tip-name">' + esc(t.name) + '</div>' +
-        '<div class="hm-tip-row"><span>PRICE</span><b>Rp ' + Math.round(t.price).toLocaleString('en-US') + '</b></div>' +
-        '<div class="hm-tip-row"><span>MKT CAP</span><b>' + caps(t.cap) + '</b></div>' +
-        '<div class="hm-tip-row"><span>SECTOR</span><b>' + esc(t.sector) + '</b></div>';
-      var br = TIP.parentElement.getBoundingClientRect();
-      TIP.style.opacity = '1';
-      var tw = TIP.offsetWidth, th = TIP.offsetHeight;
-      var x = clientX - br.left + 16; if (x + tw > br.width - 4) x = clientX - br.left - tw - 16; if (x < 4) x = 4;
-      var y = clientY - br.top + 16; if (y + th > br.height - 4) y = clientY - br.top - th - 16; if (y < 4) y = 4;
-      TIP.style.left = x.toFixed(0) + 'px'; TIP.style.top = y.toFixed(0) + 'px';
+    var MAXROWS = 16, lastPanelI = -1;
+    function spark(arr, h) {
+      if (!arr || arr.length < 2) return '<span class="hm-sp"></span>';
+      var mn = Infinity, mx = -Infinity, i;
+      for (i = 0; i < arr.length; i++) { if (arr[i] < mn) mn = arr[i]; if (arr[i] > mx) mx = arr[i]; }
+      var rng = (mx - mn) || 1, w = 100, pts = '';
+      for (i = 0; i < arr.length; i++) pts += (i / (arr.length - 1) * w).toFixed(1) + ',' + (h - (arr[i] - mn) / rng * (h - 2) - 1).toFixed(1) + ' ';
+      var up = arr[arr.length - 1] >= arr[0];
+      return '<svg class="hm-sp" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="height:' + h + 'px">' +
+        '<polyline points="' + pts.trim() + '" fill="none" stroke="' + (up ? '#2e9e5b' : '#e5484d') + '" stroke-width="1.3" vector-effect="non-scaling-stroke"/></svg>';
     }
-    function hideTip() { TIP.style.opacity = '0'; }
+    function row(t, feat, on) {
+      var c = t.pct > 0 ? '#2e9e5b' : t.pct < 0 ? '#e5484d' : 'var(--mute)';
+      return '<div class="hm-row' + (on ? ' on' : '') + '">' +
+        '<span class="hm-row-t">' + esc(t.ticker) + '</span>' + spark(t.spark, feat ? 22 : 14) +
+        '<span class="hm-row-p">' + Math.round(t.price).toLocaleString('en-US') + '</span>' +
+        '<span class="hm-row-c" style="color:' + c + '">' + pctStr(t.pct) + '</span></div>';
+    }
+    function showPanel(i, clientX, clientY) {
+      var t = window.__hm && window.__hm[i]; if (!t) return;
+      if (i === lastPanelI) return; // same tile: keep the panel pinned where it is
+      lastPanelI = i;
+      var grp = (data.groups && data.groups[t.gk]) || [t];
+      var html = '<div class="hm-panel-head">' + esc(t.sector.toUpperCase()) + ' — ' + esc(t.sub.toUpperCase()) + '</div>' +
+        '<div class="hm-feat">' + row(t, true, false) + '<div class="hm-feat-name">' + esc(t.name) + '</div></div><div class="hm-list">';
+      for (var k = 0; k < grp.length && k < MAXROWS; k++) html += row(grp[k], false, grp[k] === t);
+      html += '</div>';
+      if (grp.length > MAXROWS) html += '<div class="hm-more">+' + (grp.length - MAXROWS) + ' more</div>';
+      PANEL.innerHTML = html;
+      PANEL.style.opacity = '1';
+      var br = PANEL.parentElement.getBoundingClientRect(), pw = PANEL.offsetWidth, ph = PANEL.offsetHeight;
+      var x = clientX - br.left + 16; if (x + pw > br.width - 4) x = clientX - br.left - pw - 16; if (x < 4) x = 4;
+      var y = clientY - br.top + 16; if (y + ph > br.height - 4) y = br.height - ph - 4; if (y < 4) y = 4;
+      PANEL.style.left = x.toFixed(0) + 'px'; PANEL.style.top = y.toFixed(0) + 'px';
+    }
+    function hidePanel() { PANEL.style.opacity = '0'; lastPanelI = -1; }
     function idxOf(el) { return el && el.getAttribute && el.getAttribute('data-i'); }
     SVG.addEventListener('mousemove', function (e) {
       var i = idxOf(e.target);
-      if (i != null) showTip(+i, e.clientX, e.clientY); else hideTip();
+      if (i != null) showPanel(+i, e.clientX, e.clientY); else hidePanel();
     });
-    SVG.addEventListener('mouseleave', hideTip);
+    SVG.addEventListener('mouseleave', hidePanel);
     SVG.addEventListener('touchstart', function (e) {
       var i = idxOf(e.target), tt = e.touches && e.touches[0];
-      if (i != null && tt) showTip(+i, tt.clientX, tt.clientY);
+      if (i != null && tt) showPanel(+i, tt.clientX, tt.clientY);
     }, { passive: true });
 
     function fail(msg) { if (STATUS) { STATUS.textContent = msg; STATUS.style.display = ''; } if (WRAP) WRAP.style.display = 'none'; }
@@ -1160,16 +1190,27 @@
         for (var k = 0; k < j.tickers.length; k++) {
           var t = j.tickers[k]; if (!t) continue;
           var cap = +t.market_cap; if (!isFinite(cap) || cap <= 0) continue;
+          var spark = [];
+          if (Array.isArray(t.spark)) for (var z = 0; z < t.spark.length; z++) { var v = +t.spark[z]; if (isFinite(v)) spark.push(v); }
           tiles.push({
             ticker: String(t.ticker == null ? '' : t.ticker),
             name: String(t.name == null ? '' : t.name),
             cap: cap, price: isFinite(+t.close_price) ? +t.close_price : 0,
             pct: isFinite(+t.change_pct) ? +t.change_pct : 0,
-            sector: (t.sector && String(t.sector)) || 'Other'
+            sector: (t.sector && String(t.sector)) || 'Other',
+            sub: (t.sub_sector && String(t.sub_sector)) || 'Other',
+            spark: spark
           });
         }
         if (!tiles.length) return fail('No heatmap data yet.');
-        data = { broker_date: j.broker_date, tiles: tiles };
+        // group by sector + sub-sector for the hover panel; tag each tile with its key
+        var groups = {};
+        for (var g = 0; g < tiles.length; g++) {
+          var tt = tiles[g], key = tt.sector + ' — ' + tt.sub; tt.gk = key;
+          (groups[key] = groups[key] || []).push(tt);
+        }
+        Object.keys(groups).forEach(function (key) { groups[key].sort(function (a, b) { return b.cap - a.cap; }); });
+        data = { broker_date: j.broker_date, tiles: tiles, groups: groups };
         if (ASOF && j.broker_date) ASOF.textContent = 'AS OF ' + String(j.broker_date).slice(0, 10);
         if (STATUS) STATUS.style.display = 'none';
         if (WRAP) WRAP.style.display = '';
