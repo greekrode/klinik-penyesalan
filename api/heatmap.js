@@ -22,9 +22,13 @@ export default async function handler() {
     });
   }
 
+  // Abort if upstream stalls, so the client isn't left hanging on the platform timeout.
+  const controller = new AbortController();
+  const timer = setTimeout(function () { controller.abort(); }, 8000);
   try {
     const res = await fetch(`${base}/api/heatmap`, {
       headers: { "X-Internal-Token": token },
+      signal: controller.signal,
     });
     if (!res.ok) {
       // Don't leak upstream auth status to the client: a 401 (bad/expired
@@ -48,5 +52,7 @@ export default async function handler() {
       status: 502,
       headers: { "content-type": "application/json" },
     });
+  } finally {
+    clearTimeout(timer);
   }
 }

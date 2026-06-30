@@ -1157,7 +1157,7 @@
       lastPanelI = i;
       var grp = (data.groups && data.groups[t.gk]) || [t];
       var html = '<div class="hm-panel-head">' + esc(t.sector.toUpperCase()) + ' — ' + esc(t.sub.toUpperCase()) + '</div>' +
-        '<div class="hm-feat">' + row(t, true, false) + '<div class="hm-feat-name">' + esc(t.name) + '</div></div><div class="hm-list">';
+        '<div class="hm-feat">' + row(t, true, false) + '<div class="hm-feat-name">' + esc(t.name) + ' · MKT CAP ' + esc(caps(t.cap)) + '</div></div><div class="hm-list">';
       for (var k = 0; k < grp.length && k < MAXROWS; k++) html += row(grp[k], false, grp[k] === t);
       html += '</div>';
       if (grp.length > MAXROWS) html += '<div class="hm-more">+' + (grp.length - MAXROWS) + ' more</div>';
