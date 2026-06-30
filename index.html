@@ -332,7 +332,10 @@
   .hm-list::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
   .hm-row{display:flex;align-items:center;gap:9px;padding:4px 12px;font-size:11px;line-height:1.4;}
   .hm-list .hm-row + .hm-row{border-top:1px solid var(--line);}
-  .hm-row.on{background:var(--surface);}
+  /* highlight the active/hovered row by direction: green up, red down */
+  .hm-list .hm-row.up.on,.hm-list .hm-row.up:hover{background:rgba(46,158,91,.22);}
+  .hm-list .hm-row.down.on,.hm-list .hm-row.down:hover{background:rgba(229,72,77,.22);}
+  .hm-list .hm-row.flat.on,.hm-list .hm-row.flat:hover{background:var(--surface);}
   .hm-row-t{font-weight:600;width:48px;flex:none;}
   .hm-row-p{width:66px;text-align:right;color:var(--dim);flex:none;}
   .hm-row-c{width:56px;text-align:right;font-weight:600;flex:none;}
@@ -1156,7 +1159,8 @@
     }
     function row(t, feat, on) {
       var c = t.pct > 0 ? '#2e9e5b' : t.pct < 0 ? '#e5484d' : 'var(--mute)';
-      return '<div class="hm-row' + (on ? ' on' : '') + '">' +
+      var dir = t.pct > 0 ? 'up' : t.pct < 0 ? 'down' : 'flat';
+      return '<div class="hm-row ' + dir + (on ? ' on' : '') + '">' +
         '<span class="hm-row-t">' + esc(t.ticker) + '</span>' + spark(t.spark, feat ? 22 : 14) +
         '<span class="hm-row-p">' + Math.round(t.price).toLocaleString('en-US') + '</span>' +
         '<span class="hm-row-c" style="color:' + c + '">' + pctStr(t.pct) + '</span></div>';
