@@ -340,6 +340,13 @@
   .hm-card:fullscreen .hm-body{flex:1;display:flex;flex-direction:column;min-height:0;}
   .hm-card:fullscreen #hm-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
   .hm-card:fullscreen .hm-svg{flex:1;min-height:0;height:auto;}
+  /* sector drill-down: clickable tiles in overview + a back breadcrumb */
+  .hm-svg.zoomable .hm-tile{cursor:pointer;}
+  .hm-crumb{font:inherit;color:inherit;letter-spacing:inherit;}
+  .hm-crumb.on{cursor:pointer;}
+  .hm-crumb .hm-crumb-back{color:var(--accent);}
+  .hm-crumb.on:hover .hm-crumb-back{text-decoration:underline;}
+  .hm-hint{color:var(--mute);}
   /* hover panel: the hovered tile's sub-sector peers, with sparklines */
   .hm-panel{position:absolute;left:0;top:0;z-index:6;pointer-events:none;opacity:0;width:266px;
     transition:opacity .1s ease;background:var(--surface-2);border:1px solid var(--line-2);
@@ -765,7 +772,7 @@
     </div>
     <div class="hm-card">
       <div class="terminal-head">
-        <span>IDX HEATMAP</span>
+        <span class="hm-crumb" id="hm-crumb">IDX HEATMAP</span>
         <span class="hm-head-right">
           <span class="fg-head-meta" id="hm-asof">—</span>
           <span class="hm-tools">
@@ -785,6 +792,7 @@
           <div class="hm-legend">
             <span>−6%</span><span class="hm-legend-bar"></span><span>+6%</span>
             <span style="margin-left:10px">SIZE = MARKET CAP</span>
+            <span class="hm-hint" id="hm-hint" style="margin-left:10px"></span>
           </div>
         </div>
         <div class="hm-panel" id="hm-panel" aria-hidden="true"></div>
@@ -1088,7 +1096,7 @@
         SVG = document.getElementById('hm-svg'), PANEL = document.getElementById('hm-panel'),
         ASOF = document.getElementById('hm-asof');
     if (!SVG) return;
-    var W = 1000, HDR = 15, data = null;
+    var W = 1000, HDR = 15, data = null, focus = null;
 
     function esc(s) {
       return String(s).replace(/[&<>"']/g, function (c) {
@@ -1150,8 +1158,12 @@
         H = Math.max(380, Math.round(W * WRAP.clientHeight / WRAP.clientWidth));
       }
       SVG.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      SVG.classList.toggle('zoomable', !focus);
+      // overview groups by sector; a focused sector groups its own tickers by sub-sector
+      var srcTiles = focus ? data.tiles.filter(function (t) { return t.sector === focus; }) : data.tiles;
+      var gkey = focus ? 'sub' : 'sector';
       var bySec = {};
-      data.tiles.forEach(function (t) { (bySec[t.sector] = bySec[t.sector] || []).push(t); });
+      srcTiles.forEach(function (t) { (bySec[t[gkey]] = bySec[t[gkey]] || []).push(t); });
       var sectors = Object.keys(bySec).map(function (s) {
         var items = bySec[s], tot = 0; for (var k = 0; k < items.length; k++) tot += items[k].cap;
         return { name: s, items: items, value: tot, area: tot };
@@ -1376,7 +1388,7 @@
           '<rect width="' + outW + '" height="' + outH + '" fill="' + bg + '"/>' +
           logoSvg +
           '<text x="' + (pad + logoW + 13) + '" y="' + (headH / 2 + 6) + '" font-size="18" font-weight="600" letter-spacing="2.4" fill="' + text + '">KLINIK PENYESALAN</text>' +
-          '<text x="' + (outW - pad) + '" y="' + (headH / 2 + 5) + '" font-size="12" letter-spacing="2" text-anchor="end" fill="' + accent + '">IDX MARKET HEATMAP</text>' +
+          '<text x="' + (outW - pad) + '" y="' + (headH / 2 + 5) + '" font-size="12" letter-spacing="2" text-anchor="end" fill="' + accent + '">' + esc('IDX MARKET HEATMAP' + (focus ? ' · ' + focus.toUpperCase() : '')) + '</text>' +
           heat +
           '<line x1="' + pad + '" y1="' + fy + '" x2="' + (outW - pad) + '" y2="' + fy + '" stroke="' + surface + '"/>' +
           '<text x="' + pad + '" y="' + (midF + 4) + '" font-size="12" letter-spacing="1" fill="' + dim + '">www.klinikpenyesalan.com</text>' +
@@ -1409,6 +1421,27 @@
       });
     }
     if (SHOT) SHOT.addEventListener('click', saveImage);
+
+    // ---- sector drill-down ----
+    var CRUMB = document.getElementById('hm-crumb'), HINT = document.getElementById('hm-hint');
+    function setCrumb() {
+      if (!CRUMB) return;
+      if (focus) { CRUMB.innerHTML = '<span class="hm-crumb-back">‹ ALL</span> · ' + esc(focus.toUpperCase()); CRUMB.classList.add('on'); }
+      else { CRUMB.textContent = 'IDX HEATMAP'; CRUMB.classList.remove('on'); }
+    }
+    function setHint() { if (HINT) HINT.textContent = focus ? '· CLICK ‹ ALL TO GO BACK' : '· CLICK A SECTOR TO ZOOM IN'; }
+    function setFocus(sector) {
+      focus = sector || null; lastPanelI = -1; hidePanel(); setCrumb(); setHint();
+      if (data) build();
+    }
+    SVG.addEventListener('click', function (e) {
+      if (focus) return;                       // drill only from the overview
+      var i = idxOf(e.target); if (i == null) return;
+      var t = window.__hm && window.__hm[+i]; if (t) setFocus(t.sector);
+    });
+    if (CRUMB) CRUMB.addEventListener('click', function () { if (focus) setFocus(null); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && focus) setFocus(null); });
+    setCrumb(); setHint();
 
     var rt;
     window.addEventListener('resize', function () { if (!data) return; clearTimeout(rt); rt = setTimeout(build, 200); });
