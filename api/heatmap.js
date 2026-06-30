@@ -7,13 +7,15 @@
 //
 // Required env vars (Project → Settings → Environment Variables):
 //   HEATMAP_API_BASE_URL = https://stock.kangritel.com
-//   HEATMAP_API_TOKEN    = <internal token>   (never NEXT_PUBLIC_*)
+//   HEATMAP_TOKEN        = <internal token>   (never NEXT_PUBLIC_*)
+//                          (HEATMAP_API_TOKEN is also accepted, for compatibility)
 
 export const config = { runtime: "edge" };
 
 export default async function handler() {
   const base = process.env.HEATMAP_API_BASE_URL;
-  const token = process.env.HEATMAP_API_TOKEN;
+  // accept either name so the proxy works regardless of which is set in the env
+  const token = process.env.HEATMAP_TOKEN || process.env.HEATMAP_API_TOKEN;
 
   if (!base || !token) {
     return new Response(JSON.stringify({ error: "heatmap API not configured" }), {
