@@ -320,19 +320,22 @@
   .hm-panel{position:absolute;left:0;top:0;z-index:6;pointer-events:none;opacity:0;width:266px;
     transition:opacity .1s ease;background:var(--surface-2);border:1px solid var(--line-2);
     box-shadow:var(--elev-hi);font-family:var(--mono);color:var(--text);overflow:hidden;}
+  .hm-panel.on{opacity:1;pointer-events:auto;} /* interactive so the list can scroll */
   .hm-panel-head{font-size:9.5px;letter-spacing:.1em;color:var(--dim);padding:9px 12px;border-bottom:1px solid var(--line);}
   .hm-feat{padding:9px 12px 10px;border-bottom:1px solid var(--line);}
   .hm-feat .hm-row{font-size:14px;padding:0;}
   .hm-feat .hm-row-t{flex:none;width:auto;min-width:48px;}
   .hm-feat-name{color:var(--mute);font-size:10px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .hm-list{padding:3px 0;}
+  .hm-list{padding:3px 0;max-height:280px;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:var(--line-2) transparent;}
+  .hm-list::-webkit-scrollbar{width:7px;}
+  .hm-list::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
   .hm-row{display:flex;align-items:center;gap:9px;padding:3px 12px;font-size:11px;line-height:1.4;}
   .hm-row.on{background:var(--surface);}
   .hm-row-t{font-weight:600;width:48px;flex:none;}
   .hm-row-p{width:66px;text-align:right;color:var(--dim);flex:none;}
   .hm-row-c{width:56px;text-align:right;font-weight:600;flex:none;}
   .hm-sp{flex:1;min-width:18px;display:block;}
-  .hm-more{padding:7px 12px;font-size:9px;letter-spacing:.1em;color:var(--mute);border-top:1px solid var(--line);}
 
   /* hover crosshair + readout (cursor is set in JS once live data renders) */
   #fg-cursor{pointer-events:none;transition:opacity .12s ease;}
@@ -1051,6 +1054,12 @@
       return Math.round(n).toLocaleString('en-US');
     }
     function pctStr(p) { return (p > 0 ? '+' : p < 0 ? '−' : '') + Math.abs(p).toFixed(2) + '%'; }
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    function fmtAsOf(iso) {
+      var p = String(iso).slice(0, 10).split('-');
+      if (p.length < 3) return String(iso);
+      return (+p[2]) + ' ' + (MONTHS[(+p[1]) - 1] || p[1]) + ' ' + p[0];
+    }
     function color(p) {
       var t = Math.max(-1, Math.min(1, p / 6)), k = Math.abs(t);
       var neu = [154, 163, 171], to = t >= 0 ? [46, 158, 91] : [229, 72, 77];
@@ -1133,7 +1142,7 @@
       window.__hm = tipData;
     }
 
-    var MAXROWS = 16, lastPanelI = -1;
+    var lastPanelI = -1;
     function spark(arr, h) {
       if (!arr || arr.length < 2) return '<span class="hm-sp"></span>';
       var mn = Infinity, mx = -Infinity, i;
@@ -1153,31 +1162,42 @@
     }
     function showPanel(i, clientX, clientY) {
       var t = window.__hm && window.__hm[i]; if (!t) return;
-      if (i === lastPanelI) return; // same tile: keep the panel pinned where it is
+      if (i === lastPanelI) { PANEL.classList.add('on'); return; } // same tile: keep pinned
       lastPanelI = i;
       var grp = (data.groups && data.groups[t.gk]) || [t];
-      var html = '<div class="hm-panel-head">' + esc(t.sector.toUpperCase()) + ' — ' + esc(t.sub.toUpperCase()) + '</div>' +
+      var html = '<div class="hm-panel-head">' + esc(t.sector.toUpperCase()) + ' — ' + esc(t.sub.toUpperCase()) +
+        ' · ' + grp.length + '</div>' +
         '<div class="hm-feat">' + row(t, true, false) + '<div class="hm-feat-name">' + esc(t.name) + ' · MKT CAP ' + esc(caps(t.cap)) + '</div></div><div class="hm-list">';
-      for (var k = 0; k < grp.length && k < MAXROWS; k++) html += row(grp[k], false, grp[k] === t);
+      for (var k = 0; k < grp.length; k++) html += row(grp[k], false, grp[k] === t);
       html += '</div>';
-      if (grp.length > MAXROWS) html += '<div class="hm-more">+' + (grp.length - MAXROWS) + ' more</div>';
       PANEL.innerHTML = html;
-      PANEL.style.opacity = '1';
+      PANEL.classList.add('on');
       var br = PANEL.parentElement.getBoundingClientRect(), pw = PANEL.offsetWidth, ph = PANEL.offsetHeight;
       var x = clientX - br.left + 16; if (x + pw > br.width - 4) x = clientX - br.left - pw - 16; if (x < 4) x = 4;
       var y = clientY - br.top + 16; if (y + ph > br.height - 4) y = br.height - ph - 4; if (y < 4) y = 4;
       PANEL.style.left = x.toFixed(0) + 'px'; PANEL.style.top = y.toFixed(0) + 'px';
     }
-    function hidePanel() { PANEL.style.opacity = '0'; lastPanelI = -1; }
+    function hidePanel() { PANEL.classList.remove('on'); lastPanelI = -1; }
+    // hover-bridge: don't drop the panel when the pointer crosses from a tile
+    // onto the (now interactive, scrollable) panel itself.
+    var hideT;
+    function scheduleHide() { clearTimeout(hideT); hideT = setTimeout(hidePanel, 160); }
+    function cancelHide() { clearTimeout(hideT); }
     function idxOf(el) { return el && el.getAttribute && el.getAttribute('data-i'); }
     SVG.addEventListener('mousemove', function (e) {
       var i = idxOf(e.target);
-      if (i != null) showPanel(+i, e.clientX, e.clientY); else hidePanel();
+      if (i != null) { cancelHide(); showPanel(+i, e.clientX, e.clientY); } else scheduleHide();
     });
-    SVG.addEventListener('mouseleave', hidePanel);
+    SVG.addEventListener('mouseleave', scheduleHide);
+    PANEL.addEventListener('mouseenter', cancelHide);
+    PANEL.addEventListener('mouseleave', scheduleHide);
     SVG.addEventListener('touchstart', function (e) {
       var i = idxOf(e.target), tt = e.touches && e.touches[0];
-      if (i != null && tt) showPanel(+i, tt.clientX, tt.clientY);
+      if (i != null && tt) { cancelHide(); showPanel(+i, tt.clientX, tt.clientY); }
+    }, { passive: true });
+    // tap outside the panel/heatmap dismisses it on touch
+    document.addEventListener('touchstart', function (e) {
+      if (PANEL.classList.contains('on') && !PANEL.contains(e.target) && !SVG.contains(e.target)) hidePanel();
     }, { passive: true });
 
     function fail(msg) { if (STATUS) { STATUS.textContent = msg; STATUS.style.display = ''; } if (WRAP) WRAP.style.display = 'none'; }
@@ -1211,7 +1231,7 @@
         }
         Object.keys(groups).forEach(function (key) { groups[key].sort(function (a, b) { return b.cap - a.cap; }); });
         data = { broker_date: j.broker_date, tiles: tiles, groups: groups };
-        if (ASOF && j.broker_date) ASOF.textContent = 'AS OF ' + String(j.broker_date).slice(0, 10);
+        if (ASOF && j.broker_date) ASOF.textContent = 'AS OF ' + fmtAsOf(j.broker_date);
         if (STATUS) STATUS.style.display = 'none';
         if (WRAP) WRAP.style.display = '';
         build();
