@@ -903,15 +903,16 @@
     // header ticker: latest JCI + day-over-day change, and the F&G value
     function setTicker(series, cur) {
       if (!series.length) return;
-      var n = series.length, last = series[n - 1].jci, prev = n > 1 ? series[n - 2].jci : last;
+      var js = document.querySelectorAll('.kp-jci'), fs = document.querySelectorAll('.kp-fg'), i;
+      var fgHtml = 'FEAR &amp; GREED <b style="color:' + colorFor(cur) + '">' + Math.round(cur) + ' · ' + labelFor(cur).toUpperCase() + '</b>';
+      for (i = 0; i < fs.length; i++) fs[i].innerHTML = fgHtml;
+      if (series.length < 2) return; // need two closes for a day-over-day move; leave JCI slot hidden
+      var n = series.length, last = series[n - 1].jci, prev = series[n - 2].jci;
       var pts = last - prev, pct = prev ? pts / prev * 100 : 0;
       var up = pts >= 0, cls = up ? 'up' : 'down', arr = up ? '▲' : '▼', sg = up ? '+' : '−';
       var jciHtml = 'JCI <b>' + Math.round(last).toLocaleString('en-US') + '</b> ' +
         '<b class="' + cls + '">' + arr + ' ' + sg + Math.abs(pct).toFixed(2) + '% · ' + sg + Math.abs(Math.round(pts)).toLocaleString('en-US') + '</b>';
-      var fgHtml = 'FEAR &amp; GREED <b style="color:' + colorFor(cur) + '">' + Math.round(cur) + ' · ' + labelFor(cur).toUpperCase() + '</b>';
-      var js = document.querySelectorAll('.kp-jci'), fs = document.querySelectorAll('.kp-fg'), i;
       for (i = 0; i < js.length; i++) js[i].innerHTML = jciHtml;
-      for (i = 0; i < fs.length; i++) fs[i].innerHTML = fgHtml;
     }
 
     function render(data) {
