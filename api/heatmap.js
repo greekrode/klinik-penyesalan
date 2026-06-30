@@ -27,10 +27,12 @@ export default async function handler() {
       headers: { "X-Internal-Token": token },
     });
     if (!res.ok) {
-      // Don't leak upstream auth status to the client (401 -> 502).
+      // Don't leak upstream auth status to the client: a 401 (bad/expired
+      // token) is remapped to 502 with a generic body that omits the status.
+      const isAuth = res.status === 401;
       return new Response(
-        JSON.stringify({ error: `heatmap upstream error (${res.status})` }),
-        { status: res.status === 401 ? 502 : res.status, headers: { "content-type": "application/json" } },
+        JSON.stringify({ error: isAuth ? "heatmap upstream error" : `heatmap upstream error (${res.status})` }),
+        { status: isAuth ? 502 : res.status, headers: { "content-type": "application/json" } },
       );
     }
     return new Response(await res.text(), {
