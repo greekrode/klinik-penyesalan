@@ -326,6 +326,20 @@
     font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--mute);}
   .hm-legend-bar{width:180px;max-width:42vw;height:8px;border-radius:2px;
     background:linear-gradient(90deg,#e5484d,#9aa3ab 50%,#2e9e5b);}
+  /* heatmap toolbar: fullscreen + save-image */
+  .hm-head-right{display:inline-flex;align-items:center;gap:12px;}
+  .hm-tools{display:inline-flex;gap:6px;}
+  .hm-tool{display:inline-flex;align-items:center;justify-content:center;width:30px;height:25px;padding:0;
+    border:1px solid var(--line-2);background:transparent;color:var(--dim);cursor:pointer;
+    transition:border-color .18s,color .18s;}
+  .hm-tool:hover{border-color:var(--accent);color:var(--accent);}
+  .hm-tool:disabled{opacity:.4;cursor:default;}
+  .hm-tool svg{width:14px;height:14px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .hm-card:fullscreen{background:var(--bg);padding:14px 18px;justify-content:flex-start;}
+  .hm-card:fullscreen .hm-body{flex:1;display:flex;flex-direction:column;min-height:0;}
+  .hm-card:fullscreen #hm-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
+  .hm-card:fullscreen .hm-svg{flex:1;min-height:0;height:auto;}
   /* hover panel: the hovered tile's sub-sector peers, with sparklines */
   .hm-panel{position:absolute;left:0;top:0;z-index:6;pointer-events:none;opacity:0;width:266px;
     transition:opacity .1s ease;background:var(--surface-2);border:1px solid var(--line-2);
@@ -752,7 +766,17 @@
     <div class="hm-card">
       <div class="terminal-head">
         <span>IDX HEATMAP</span>
-        <span class="fg-head-meta" id="hm-asof">—</span>
+        <span class="hm-head-right">
+          <span class="fg-head-meta" id="hm-asof">—</span>
+          <span class="hm-tools">
+            <button class="hm-tool" id="hm-fs" type="button" title="Fullscreen" aria-label="Toggle fullscreen">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+            </button>
+            <button class="hm-tool" id="hm-shot" type="button" title="Save image" aria-label="Save heatmap image">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v4h16v-4M12 4v10M8 10l4 4 4-4"/></svg>
+            </button>
+          </span>
+        </span>
       </div>
       <div class="hm-body">
         <div class="hm-status" id="hm-status">Loading market heatmap…</div>
@@ -1121,6 +1145,10 @@
       if (!data) return;
       var sm = matchMedia('(max-width:620px)').matches, md = matchMedia('(max-width:900px)').matches;
       var H = sm ? 1180 : md ? 860 : 600;
+      // in fullscreen, match the viewBox aspect to the available area so the treemap fills the screen
+      if (document.fullscreenElement && WRAP.clientWidth > 0 && WRAP.clientHeight > 0) {
+        H = Math.max(380, Math.round(W * WRAP.clientHeight / WRAP.clientWidth));
+      }
       SVG.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
       var bySec = {};
       data.tiles.forEach(function (t) { (bySec[t.sector] = bySec[t.sector] || []).push(t); });
@@ -1275,6 +1303,112 @@
         build();
       })
       .catch(function () { fail('Couldn’t load the heatmap.'); });
+
+    // ---- toolbar: fullscreen + save-image ----
+    var CARD = SVG.closest('.hm-card'), FS = document.getElementById('hm-fs'), SHOT = document.getElementById('hm-shot');
+    if (FS && CARD) {
+      FS.addEventListener('click', function () {
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else if (CARD.requestFullscreen) { CARD.requestFullscreen(); }
+        else if (CARD.webkitRequestFullscreen) { CARD.webkitRequestFullscreen(); }
+      });
+      // re-lay out the treemap to fill (or restore) on fullscreen transitions
+      document.addEventListener('fullscreenchange', function () { if (data) build(); });
+    }
+
+    function cssVar(name, fallback) {
+      var v = getComputedStyle(document.body).getPropertyValue(name).trim();
+      return v || fallback;
+    }
+    // Try to inline the brand font so exported text isn't a generic monospace fallback.
+    function fontFace() {
+      return fetch('assets/fonts/jetbrains-mono.woff2')
+        .then(function (r) { return r.ok ? r.blob() : Promise.reject(); })
+        .then(function (b) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(b); }); })
+        .then(function (uri) { return "@font-face{font-family:'JetBrains Mono';font-weight:400 700;font-display:swap;src:url(" + uri + ") format('woff2');}"; })
+        .catch(function () { return ''; });
+    }
+
+    function saveImage() {
+      if (!data || !SVG.getAttribute('viewBox')) return;
+      SHOT.disabled = true;
+      var vb = SVG.getAttribute('viewBox').split(/\s+/).map(Number), w = vb[2], h = vb[3];
+      var bg = cssVar('--bg', '#13171b'), surface = cssVar('--surface', '#181d23'),
+          text = cssVar('--text', '#e9ecef'), dim = cssVar('--dim', '#9aa3ab'),
+          mute = cssVar('--mute', '#7e8893'), accent = cssVar('--accent', '#3bbcb4'),
+          logoLight = cssVar('--logo-light', '#d8d8d8');
+      var pad = 36, headH = 76, footH = 60, outW = w + pad * 2, outH = headH + h + footH;
+      var asof = (ASOF && ASOF.textContent || '').toUpperCase();
+
+      // brand logo: clone the shared <symbol> and resolve its CSS-var fill to a literal colour
+      var sym = document.getElementById('kp-mark');
+      var logoH = 34, logoW = Math.round(logoH * 600 / 499), logoY = Math.round((headH - logoH) / 2);
+      var logoSvg = '';
+      if (sym) {
+        var lg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        lg.setAttribute('x', pad); lg.setAttribute('y', logoY);
+        lg.setAttribute('width', logoW); lg.setAttribute('height', logoH);
+        lg.setAttribute('viewBox', '0 0 600 499');
+        for (var n = 0; n < sym.childNodes.length; n++) lg.appendChild(sym.childNodes[n].cloneNode(true));
+        logoSvg = new XMLSerializer().serializeToString(lg).replace(/var\(--logo-light\)/g, logoLight);
+      }
+
+      // the heatmap itself: a nested, self-contained copy positioned under the header
+      var clone = SVG.cloneNode(true);
+      clone.removeAttribute('class'); clone.removeAttribute('style');
+      clone.setAttribute('x', pad); clone.setAttribute('y', headH);
+      clone.setAttribute('width', w); clone.setAttribute('height', h);
+      var heat = new XMLSerializer().serializeToString(clone);
+
+      fontFace().then(function (ff) {
+        var style = ff +
+          "text{font-family:'JetBrains Mono',ui-monospace,monospace;}" +
+          '.hm-tile{stroke:' + surface + ';stroke-width:1.2;}' +
+          '.hm-lbl{fill:#fff;font-weight:600;paint-order:stroke;stroke:rgba(0,0,0,.42);stroke-width:.5px;}' +
+          '.hm-pct{fill:rgba(255,255,255,.85);}' +
+          '.hm-sec{fill:' + dim + ';letter-spacing:.1em;}' +
+          '.hm-tile-spark{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.1;}';
+        var fy = headH + h, midF = fy + footH / 2;       // footer band
+        var lx = outW / 2 - 78;                          // legend block, centred
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + outW + '" height="' + outH + '" viewBox="0 0 ' + outW + ' ' + outH + '">' +
+          '<defs><linearGradient id="hmlg"><stop offset="0" stop-color="#e5484d"/><stop offset="0.5" stop-color="#9aa3ab"/><stop offset="1" stop-color="#2e9e5b"/></linearGradient></defs>' +
+          '<style>' + style + '</style>' +
+          '<rect width="' + outW + '" height="' + outH + '" fill="' + bg + '"/>' +
+          logoSvg +
+          '<text x="' + (pad + logoW + 13) + '" y="' + (headH / 2 + 6) + '" font-size="18" font-weight="600" letter-spacing="2.4" fill="' + text + '">KLINIK PENYESALAN</text>' +
+          '<text x="' + (outW - pad) + '" y="' + (headH / 2 + 5) + '" font-size="12" letter-spacing="2" text-anchor="end" fill="' + accent + '">IDX MARKET HEATMAP</text>' +
+          heat +
+          '<line x1="' + pad + '" y1="' + fy + '" x2="' + (outW - pad) + '" y2="' + fy + '" stroke="' + surface + '"/>' +
+          '<text x="' + pad + '" y="' + (midF + 4) + '" font-size="12" letter-spacing="1" fill="' + dim + '">www.klinikpenyesalan.com</text>' +
+          '<text x="' + lx + '" y="' + (midF + 4) + '" font-size="10" text-anchor="end" fill="' + mute + '">−6%</text>' +
+          '<rect x="' + (lx + 6) + '" y="' + (midF - 4) + '" width="120" height="8" rx="2" fill="url(#hmlg)"/>' +
+          '<text x="' + (lx + 132) + '" y="' + (midF + 4) + '" font-size="10" fill="' + mute + '">+6%</text>' +
+          '<text x="' + (outW - pad) + '" y="' + (midF + 4) + '" font-size="11" letter-spacing="1" text-anchor="end" fill="' + mute + '">' + esc(asof) + '</text>' +
+          '</svg>';
+
+        var url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+        var img = new Image();
+        img.onload = function () {
+          var scale = 2, cv = document.createElement('canvas');
+          cv.width = outW * scale; cv.height = outH * scale;
+          var ctx = cv.getContext('2d');
+          ctx.setTransform(scale, 0, 0, scale, 0, 0);
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          cv.toBlob(function (blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'klinik-heatmap-' + String((data && data.broker_date) || '').slice(0, 10) + '.png';
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+            SHOT.disabled = false;
+          }, 'image/png');
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); SHOT.disabled = false; };
+        img.src = url;
+      });
+    }
+    if (SHOT) SHOT.addEventListener('click', saveImage);
 
     var rt;
     window.addEventListener('resize', function () { if (!data) return; clearTimeout(rt); rt = setTimeout(build, 200); });
