@@ -3,7 +3,7 @@
 
   var config = window.KP_SUPABASE;
   var client = window.supabase.createClient(config.url, config.publishableKey);
-  var state = { posts: [], currentId: null, filter: 'all', session: null, slugTouched: false };
+  var state = { posts: [], currentId: null, filter: 'all', session: null, slugTouched: false, pendingDocx: null };
   var editorPromise = null;
 
   var $ = function (id) { return document.getElementById(id); };
@@ -189,11 +189,46 @@
     return new File([bytes], 'docx-image', { type: type });
   }
 
-  async function importDocx(file) {
+  function clearDocxWarning() {
+    state.pendingDocx = null;
+    $('docx-warning').hidden = true;
+    $('docx-warning-list').replaceChildren();
+    $('docx-file').value = '';
+  }
+
+  function showDocxWarning(messages) {
+    var list = $('docx-warning-list');
+    list.replaceChildren();
+    messages.forEach(function (message) {
+      var item = document.createElement('li');
+      item.textContent = message;
+      list.appendChild(item);
+    });
+    $('docx-warning').hidden = false;
+  }
+
+  async function inspectDocx(file) {
     if (!file || !/\.docx$/i.test(file.name)) throw new Error('Choose a .docx file.');
-    setBusy(true, 'Importing Word document…');
+    if (file.size > 25 * 1024 * 1024) throw new Error('DOCX files must be 25 MB or smaller.');
+    setBusy(true, 'Checking Word document…');
     try {
       var arrayBuffer = await file.arrayBuffer();
+      var report = await window.KPDocxPreflight.inspect(arrayBuffer);
+      if (report.messages.length) {
+        state.pendingDocx = { file: file, arrayBuffer: arrayBuffer };
+        showDocxWarning(report.messages);
+        setMessage(editorMessage, 'Review the flagged chart and graphic items before continuing.', 'error');
+        return;
+      }
+      await importDocx(file, arrayBuffer);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function importDocx(file, arrayBuffer) {
+    setBusy(true, 'Importing Word document…');
+    try {
       var result = await window.mammoth.convertToHtml({ arrayBuffer: arrayBuffer }, {
         convertImage: window.mammoth.images.imgElement(async function (image) {
           if (!/^image\/(jpeg|png|webp|gif)$/.test(image.contentType)) return { src: '', alt: '' };
@@ -206,7 +241,7 @@
       setMessage(editorMessage, warnings.length ? 'DOCX imported with ' + warnings.length + ' formatting warning(s).' : 'DOCX imported successfully.', warnings.length ? '' : 'success');
     } finally {
       setBusy(false);
-      $('docx-file').value = '';
+      clearDocxWarning();
     }
   }
 
@@ -331,7 +366,16 @@
       $('thumbnail-preview').hidden = false;
     });
     $('docx-file').addEventListener('change', function () {
-      importDocx($('docx-file').files[0]).catch(function (error) { setBusy(false); setMessage(editorMessage, error.message, 'error'); });
+      inspectDocx($('docx-file').files[0]).catch(function (error) { setBusy(false); clearDocxWarning(); setMessage(editorMessage, error.message, 'error'); });
+    });
+    $('cancel-docx').addEventListener('click', function () {
+      clearDocxWarning();
+      setMessage(editorMessage, 'DOCX import cancelled. Convert flagged charts to PNG, then try again.');
+    });
+    $('continue-docx').addEventListener('click', function () {
+      var pending = state.pendingDocx;
+      if (!pending) return;
+      importDocx(pending.file, pending.arrayBuffer).catch(function (error) { setBusy(false); clearDocxWarning(); setMessage(editorMessage, error.message, 'error'); });
     });
     client.auth.onAuthStateChange(function (_event, session) { setTimeout(function () { routeSession(session); }, 0); });
     var sessionResult = await client.auth.getSession();
