@@ -1,83 +1,213 @@
+.article-context {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 30px 0 18px;
+}
+
+.article-context .back {
+  color: var(--dim);
+}
+
+.article-context .back:hover {
+  color: var(--accent);
+}
+
+.article-context .eyebrow {
+  margin: 0;
+  padding-left: 22px;
+  border-left: 1px solid var(--line-2);
+}
+
 .article-hero {
-  height: clamp(330px, 46vh, 370px);
+  width: 100vw;
+  height: clamp(340px, 43vh, 390px);
   min-height: 0;
+  margin: 0 0 0 calc(50% - 50vw);
+  border: 0;
+  background: var(--bg);
+}
+
+.article-thumbnail {
+  object-position: center 42%;
+}
+
+.article-hero-shade {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 20%, transparent) 0%, rgba(7, 10, 13, .25) 28%, color-mix(in srgb, var(--bg) 96%, transparent) 100%),
+    linear-gradient(90deg, color-mix(in srgb, var(--bg) 88%, transparent) 0%, rgba(7, 10, 13, .56) 28%, rgba(7, 10, 13, .12) 72%, color-mix(in srgb, var(--bg) 72%, transparent) 100%);
 }
 
 .article-head {
+  width: min(1180px, calc(100% - 48px));
   height: 100%;
   min-height: 0;
-  padding: 24px 42px 30px;
+  margin: 0 auto;
+  padding: 20px 0 48px;
+}
+
+.article-head-copy {
+  width: min(900px, 78%);
 }
 
 .article-head h1 {
-  font-size: clamp(34px, 4.4vw, 56px);
-  margin: 10px 0 12px;
+  max-width: 23ch;
+  margin: 0 0 14px;
+  font-size: clamp(38px, 4.2vw, 58px);
+  line-height: 1.02;
 }
 
 .article-excerpt {
+  max-width: 720px;
   font-size: 16px;
-  line-height: 1.42;
+  line-height: 1.45;
+}
+
+.article-utility {
+  max-width: 900px;
+  margin: 0 auto 34px;
+  padding: 14px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
 }
 
 .article-meta {
-  margin-top: 14px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: var(--mute);
+}
+
+.article-meta span {
+  position: relative;
+  padding-left: 18px;
+}
+
+.article-meta span::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translateY(-50%);
 }
 
 .article-share {
-  min-height: 52px;
-  margin-bottom: 32px;
+  min-height: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+}
+
+.share-label {
+  margin: 0 7px 0 0;
+}
+
+.article-share a,
+.article-share button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex: 0 0 36px;
+  align-self: auto;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  color: var(--dim);
+  font-size: 13px;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease, transform 130ms cubic-bezier(.23, 1, .32, 1);
+}
+
+.article-share a:hover,
+.article-share button:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.share-status {
+  margin-left: 4px;
 }
 
 @media (max-width: 720px) {
+  .article-context {
+    gap: 14px;
+    padding: 22px 0 14px;
+  }
+
+  .article-context .eyebrow {
+    padding-left: 14px;
+    font-size: 9px;
+  }
+
   .article-hero {
     height: auto;
-    min-height: 390px;
+    min-height: 370px;
   }
 
   .article-head {
+    width: min(100% - 32px, 1180px);
     height: auto;
-    min-height: 390px;
-    padding: 20px 20px 24px;
+    min-height: 370px;
+    padding: 18px 0 42px;
+  }
+
+  .article-head-copy {
+    width: 100%;
   }
 
   .article-head h1 {
+    max-width: none;
+    margin-bottom: 11px;
     font-size: clamp(32px, 9vw, 40px);
-    margin-bottom: 10px;
   }
 
   .article-excerpt {
     font-size: 15px;
   }
 
-  .article-meta {
-    margin-top: 12px;
+  .article-utility {
+    margin-bottom: 28px;
+    padding: 14px 0 18px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .article-share {
-    min-height: 44px;
-    margin-bottom: 26px;
-    grid-template-columns: repeat(4, 1fr);
+    width: auto;
+    display: flex;
+    grid-template-columns: none;
   }
 
   .share-label {
-    display: none;
+    display: inline;
+    padding: 0;
   }
 
   .article-share a,
   .article-share button {
-    justify-content: center;
-    min-height: 44px;
-    padding: 0 6px;
-    border-left: 1px solid var(--line);
-    border-bottom: 0;
+    min-height: 36px;
+    border: 1px solid var(--line-2);
   }
 
-  .article-share a:first-of-type {
-    border-left: 0;
+  .share-status {
+    width: auto;
+    padding: 0;
+    border: 0;
   }
 
   .share-status:not(:empty) {
-    padding: 10px;
-    border-top: 1px solid var(--line);
+    padding: 0;
+    border: 0;
   }
 }

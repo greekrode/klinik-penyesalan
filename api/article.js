@@ -71,6 +71,9 @@ function pageShell({ title, description, canonical, image, robots, body, article
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <link rel="stylesheet" href="/assets/css/blog.css">
   <link rel="stylesheet" href="/assets/css/article-layout.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/fontawesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/brands.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/solid.min.css">
   <script>try{var t=localStorage.getItem('kp-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
   ${jsonLd}
 </head>
@@ -123,26 +126,30 @@ function renderArticle(post) {
     : '';
   const body = `<main class="wrap">
     <article>
+      <div class="article-context">
+        <a class="back" href="/blog.html">← ALL ARTICLES</a>
+        <p class="eyebrow">KLINIK NEWSLETTER</p>
+      </div>
       <header class="article-hero">
         ${thumbnail}
         <div class="article-hero-shade"></div>
         <div class="article-head">
-          <a class="back" href="/blog.html">← ALL ARTICLES</a>
           <div class="article-head-copy">
-            <p class="eyebrow">KLINIK NEWSLETTER</p>
             <h1>${escapeHtml(post.title)}</h1>
             <p class="article-excerpt">${escapeHtml(post.excerpt)}</p>
-            <div class="article-meta"><time datetime="${escapeHtml(post.published_at)}">${escapeHtml(formatDate(post.published_at))}</time><span>·</span><span>${readTime(content)} MIN READ</span></div>
           </div>
         </div>
       </header>
-      <div class="article-share" aria-label="Share this article" data-share-url="${escapeHtml(canonical)}" data-share-title="${escapeHtml(post.title)}" data-share-text="${escapeHtml(description)}">
-        <span class="share-label">SHARE ARTICLE</span>
-        <a href="${escapeHtml(xUrl)}" target="_blank" rel="noopener">X</a>
-        <a href="${escapeHtml(facebookUrl)}" target="_blank" rel="noopener">FACEBOOK</a>
-        <button id="share-instagram" type="button">INSTAGRAM</button>
-        <button id="share-copy" type="button">COPY LINK</button>
-        <span id="share-status" class="share-status" role="status" aria-live="polite"></span>
+      <div class="article-utility">
+        <div class="article-meta"><time datetime="${escapeHtml(post.published_at)}">${escapeHtml(formatDate(post.published_at))}</time><span>${readTime(content)} MIN READ</span></div>
+        <div class="article-share" aria-label="Share this article" data-share-url="${escapeHtml(canonical)}" data-share-title="${escapeHtml(post.title)}" data-share-text="${escapeHtml(description)}">
+          <span class="share-label">SHARE</span>
+          <a href="${escapeHtml(xUrl)}" target="_blank" rel="noopener" aria-label="Share on X" title="Share on X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
+          <a href="${escapeHtml(facebookUrl)}" target="_blank" rel="noopener" aria-label="Share on Facebook" title="Share on Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+          <button id="share-instagram" type="button" aria-label="Share to Instagram" title="Share to Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></button>
+          <button id="share-copy" type="button" aria-label="Copy article link" title="Copy article link"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
+          <span id="share-status" class="share-status" role="status" aria-live="polite"></span>
+        </div>
       </div>
       <div class="article-content">${content}</div>
     </article>
