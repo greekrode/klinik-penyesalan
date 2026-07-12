@@ -13,7 +13,7 @@
 
   function render(posts) {
     if (!posts.length) {
-      container.innerHTML = '<div class="blog-empty"><span>NO NOTES YET</span><p>The desk is being prepared. Check back after the next market confession.</p></div>';
+      container.innerHTML = '<div class="blog-empty"><span>NO ARTICLES YET</span><p>The first article will be published here.</p></div>';
       return;
     }
     container.innerHTML = posts.map(function (post, index) {
@@ -22,8 +22,8 @@
         ? '<div class="blog-card-image" style="background-image:url(&quot;' + escapeHtml(post.thumbnail_url) + '&quot;)"></div>'
         : '<div class="blog-card-image blog-card-image--empty"><span>KP / ' + String(index + 1).padStart(2, '0') + '</span></div>';
       return '<a class="blog-card" href="blog.html?slug=' + encodeURIComponent(post.slug) + '">' + image +
-        '<div class="blog-card-body"><div class="blog-card-meta"><span>DESK NOTE</span><time>' + escapeHtml(date) + '</time></div>' +
-        '<h3>' + escapeHtml(post.title) + '</h3><p>' + escapeHtml(post.excerpt || '') + '</p><span class="blog-card-open">READ NOTE →</span></div></a>';
+        '<div class="blog-card-body"><div class="blog-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(date) + '</time></div>' +
+        '<h3>' + escapeHtml(post.title) + '</h3><p>' + escapeHtml(post.excerpt || '') + '</p><span class="blog-card-open">READ ARTICLE →</span></div></a>';
     }).join('');
   }
 
@@ -38,6 +38,6 @@
       render(result.data || []);
     })
     .catch(function () {
-      container.innerHTML = '<div class="blog-empty"><span>DESK OFFLINE</span><p>Notes could not be loaded right now.</p></div>';
+      container.innerHTML = '<div class="blog-empty"><span>NEWSLETTER OFFLINE</span><p>Articles could not be loaded right now.</p></div>';
     });
 })();

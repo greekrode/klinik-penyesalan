@@ -23,7 +23,7 @@
     var title = post.title + ' · Klinik Penyesalan';
     var url = 'https://www.klinikpenyesalan.com/blog.html?slug=' + encodeURIComponent(post.slug);
     document.title = title;
-    document.querySelector('meta[name="description"]').content = post.excerpt || 'A desk note from Klinik Penyesalan.';
+    document.querySelector('meta[name="description"]').content = post.excerpt || 'An article from the Klinik Penyesalan newsletter.';
     document.querySelector('link[rel="canonical"]').href = url;
     document.querySelector('meta[property="og:title"]').content = title;
     document.querySelector('meta[property="og:description"]').content = post.excerpt || '';
@@ -60,8 +60,8 @@
     var posts = result.data || [];
     $('all-posts').innerHTML = posts.length ? posts.map(function (post) {
       var imageStyle = post.thumbnail_url ? ' style="background-image:url(&quot;' + escapeHtml(post.thumbnail_url) + '&quot;)"' : '';
-      return '<a class="post-card" href="blog.html?slug=' + encodeURIComponent(post.slug) + '"><div class="post-card-image"' + imageStyle + '></div><div class="post-card-body"><div class="post-card-meta"><span>DESK NOTE</span><time>' + escapeHtml(formatDate(post.published_at)) + '</time></div><h2>' + escapeHtml(post.title) + '</h2><p>' + escapeHtml(post.excerpt || '') + '</p><span class="post-card-open">READ NOTE →</span></div></a>';
-    }).join('') : '<div class="state"><span class="eyebrow">NO NOTES YET</span><p>The desk is being prepared.</p></div>';
+      return '<a class="post-card" href="blog.html?slug=' + encodeURIComponent(post.slug) + '"><div class="post-card-image"' + imageStyle + '></div><div class="post-card-body"><div class="post-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(formatDate(post.published_at)) + '</time></div><h2>' + escapeHtml(post.title) + '</h2><p>' + escapeHtml(post.excerpt || '') + '</p><span class="post-card-open">READ ARTICLE →</span></div></a>';
+    }).join('') : '<div class="state"><span class="eyebrow">NO ARTICLES YET</span><p>The first article will be published here.</p></div>';
     show('index-view');
   }
 

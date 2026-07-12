@@ -104,7 +104,7 @@
     $('thumbnail-preview').style.backgroundImage = '';
     $('delete-post').hidden = true;
     $('editor-kicker').textContent = 'NEW POST';
-    $('editor-heading').textContent = 'Untitled note';
+    $('editor-heading').textContent = 'Untitled article';
     if (window.tinymce.get('content')) window.tinymce.get('content').setContent('');
     setMessage(editorMessage, '');
     renderPosts();
@@ -352,7 +352,7 @@
       });
     });
     $('title').addEventListener('input', function () {
-      $('editor-heading').textContent = $('title').value.trim() || 'Untitled note';
+      $('editor-heading').textContent = $('title').value.trim() || 'Untitled article';
       if (!state.slugTouched) $('slug').value = slugify($('title').value);
     });
     $('slug').addEventListener('input', function () { state.slugTouched = Boolean($('slug').value); });
