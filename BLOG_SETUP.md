@@ -19,6 +19,8 @@ The `/admin/` page intentionally has no public sign-up. A valid Supabase login t
 
 - `/`: latest published posts appear in the **Newsletter** section.
 - `/articles/your-post-slug`: server-rendered public article reader.
+- `/sitemap.xml`: dynamic index of every published article for search crawlers.
+- `/llms.txt`: concise AI-readable index of the publication and its canonical articles.
 - `/admin/`: authenticated post manager and editor.
 
 DOCX import keeps common Word formatting and uploads embedded JPEG/PNG/WebP/GIF images to the `blog-media` bucket. Before conversion, it warns editors about native Word charts, SmartArt, embedded Excel/OLE objects, and unsupported EMF/WMF/SVG graphics so they can replace those items with high-resolution PNG images. Imported and edited HTML is sanitized before it is saved and again before it is rendered publicly.

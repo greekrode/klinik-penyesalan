@@ -2,4 +2,16 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+
 Sitemap: https://www.klinikpenyesalan.com/sitemap.xml

@@ -7,6 +7,8 @@
   <title>Newsletter Admin · Klinik Penyesalan</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
   <link rel="stylesheet" href="/admin/admin.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/fontawesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/solid.min.css">
   <script>try{var t=localStorage.getItem('kp-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
@@ -14,7 +16,7 @@
     <a class="brand" href="/">KLINIK PENYESALAN <span>/ NEWSLETTER ADMIN</span></a>
     <div class="top-actions">
       <span id="user-email" class="user-email"></span>
-      <button id="theme-toggle" class="button button--ghost" type="button">LIGHT</button>
+      <button id="theme-toggle" class="button button--ghost button--icon" type="button" aria-label="Switch to light mode" title="Switch to light mode"><i class="fa-solid fa-sun" aria-hidden="true"></i></button>
       <button id="sign-out" class="button button--ghost" type="button" hidden>SIGN OUT</button>
     </div>
   </header>
@@ -59,8 +61,8 @@
         <div class="editor-head">
           <div><p id="editor-kicker" class="eyebrow">NEW POST</p><h1 id="editor-heading">Untitled article</h1></div>
           <div class="editor-actions">
-            <button id="delete-post" class="button button--danger" type="button" hidden>DELETE</button>
-            <button class="button button--primary" type="submit">SAVE POST</button>
+            <button id="delete-post" class="button button--danger button--icon" type="button" aria-label="Delete post" title="Delete post" hidden><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+            <button class="button button--primary button--icon" type="submit" aria-label="Save post" title="Save post"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i></button>
           </div>
         </div>
 

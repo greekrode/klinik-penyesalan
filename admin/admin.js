@@ -71,7 +71,7 @@
         toolbar_mode: 'sliding',
         font_size_formats: '10px 12px 14px 15px 16px 17px 18px 20px 22px 24px 28px 32px 36px 40px 48px 56px 64px',
         line_height_formats: '1 1.2 1.4 1.5 1.6 1.8 2',
-        content_style: 'body{font-family:Arial,sans-serif;font-size:17px;line-height:1.7;max-width:820px;margin:32px auto;padding:0 24px}img{max-width:100%;height:auto}blockquote{border-left:3px solid #3bbcb4;margin-left:0;padding-left:20px;color:#667}a{color:#168c84}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #ccd2d7}',
+        content_style: 'body{font-family:Arial,sans-serif;font-size:14px;line-height:1.7;max-width:820px;margin:32px auto;padding:0 24px}img{max-width:100%;height:auto}blockquote{border-left:3px solid #3bbcb4;margin-left:0;padding-left:20px;color:#667}a{color:#168c84}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #ccd2d7}',
         image_caption: true,
         link_default_target: '_blank',
         link_assume_external_targets: 'https',
@@ -316,7 +316,13 @@
 
   function initTheme() {
     var button = $('theme-toggle');
-    function sync() { button.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? 'DARK' : 'LIGHT'; }
+    function sync() {
+      var light = document.documentElement.getAttribute('data-theme') === 'light';
+      var label = light ? 'Switch to dark mode' : 'Switch to light mode';
+      button.innerHTML = '<i class="fa-solid fa-' + (light ? 'moon' : 'sun') + '" aria-hidden="true"></i>';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
     sync();
     button.addEventListener('click', function () {
       var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';

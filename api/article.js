@@ -47,26 +47,39 @@ function pageShell({ title, description, canonical, image, robots, body, article
   const safeDescription = escapeHtml(description);
   const safeCanonical = escapeHtml(canonical);
   const safeImage = escapeHtml(image || `${SITE_URL}/assets/og-image.png`);
+  const imageType = /\.jpe?g(?:$|\?)/i.test(image || '') ? 'image/jpeg'
+    : /\.webp(?:$|\?)/i.test(image || '') ? 'image/webp'
+      : /\.gif(?:$|\?)/i.test(image || '') ? 'image/gif'
+        : 'image/png';
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="${robots}">
+  <meta name="author" content="Klinik Penyesalan">
   <title>${safeTitle}</title>
   <meta name="description" content="${safeDescription}">
   <link rel="canonical" href="${safeCanonical}">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Klinik Penyesalan">
+  <meta property="og:locale" content="en_US">
   <meta property="og:title" content="${safeTitle}">
   <meta property="og:description" content="${safeDescription}">
   <meta property="og:url" content="${safeCanonical}">
   <meta property="og:image" content="${safeImage}">
+  <meta property="og:image:secure_url" content="${safeImage}">
+  <meta property="og:image:type" content="${imageType}">
+  <meta property="og:image:alt" content="${escapeHtml(title || 'Klinik Penyesalan')}">
   ${articleMeta}
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@klinikp88">
+  <meta name="twitter:creator" content="@klinikp88">
   <meta name="twitter:title" content="${safeTitle}">
   <meta name="twitter:description" content="${safeDescription}">
   <meta name="twitter:image" content="${safeImage}">
+  <meta name="twitter:image:alt" content="${escapeHtml(title || 'Klinik Penyesalan')}">
+  <link rel="alternate" type="text/plain" href="${SITE_URL}/llms.txt" title="AI-readable content index">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <link rel="stylesheet" href="/assets/css/blog.css">
@@ -81,7 +94,7 @@ function pageShell({ title, description, canonical, image, robots, body, article
   <header class="site-header">
     <div class="wrap header-inner">
       <a class="brand" href="/"><img src="/assets/favicon-256.png" alt="" width="30" height="30"><span>KLINIK PENYESALAN</span></a>
-      <nav><a href="/">HOME</a><a href="/blog.html">ALL ARTICLES</a><button id="theme-toggle" type="button">LIGHT</button></nav>
+      <nav><a href="/">HOME</a><a href="/blog.html">ALL ARTICLES</a><button id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode"><i class="fa-solid fa-sun" aria-hidden="true"></i></button></nav>
     </div>
   </header>
   ${body}
@@ -142,7 +155,7 @@ function renderArticle(post) {
       </header>
       <div class="article-utility">
         <div class="article-meta"><time datetime="${escapeHtml(post.published_at)}">${escapeHtml(formatDate(post.published_at))}</time><span>${readTime(content)} MIN READ</span></div>
-        <div class="article-share" aria-label="Share this article" data-share-url="${escapeHtml(canonical)}" data-share-title="${escapeHtml(post.title)}" data-share-text="${escapeHtml(description)}">
+        <div class="article-share" aria-label="Share this article" data-share-url="${escapeHtml(canonical)}" data-share-title="${escapeHtml(post.title)}" data-share-text="${escapeHtml(description)}" data-share-image="${escapeHtml(post.thumbnail_url || '')}" data-share-slug="${escapeHtml(post.slug)}">
           <span class="share-label">SHARE</span>
           <a href="${escapeHtml(xUrl)}" target="_blank" rel="noopener" aria-label="Share on X" title="Share on X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
           <a href="${escapeHtml(facebookUrl)}" target="_blank" rel="noopener" aria-label="Share on Facebook" title="Share on Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
@@ -159,7 +172,7 @@ function renderArticle(post) {
     description,
     canonical,
     image,
-    robots: 'index, follow, max-image-preview:large',
+    robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
     body,
     articleMeta: `<meta property="article:published_time" content="${escapeHtml(post.published_at)}">
   <meta property="article:modified_time" content="${escapeHtml(post.updated_at)}">
