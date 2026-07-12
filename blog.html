@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <title>Desk Notes · Klinik Penyesalan</title>
+  <meta name="description" content="Market notes, research, and hard-earned lessons from Klinik Penyesalan.">
+  <link rel="canonical" href="https://www.klinikpenyesalan.com/blog.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Klinik Penyesalan">
+  <meta property="og:title" content="Desk Notes · Klinik Penyesalan">
+  <meta property="og:description" content="Market notes, research, and hard-earned lessons from Klinik Penyesalan.">
+  <meta property="og:image" content="https://www.klinikpenyesalan.com/assets/og-image.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/blog.css">
+  <script>try{var t=localStorage.getItem('kp-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./"><img src="assets/logo.png" alt="" width="28" height="24"><span>KLINIK PENYESALAN</span></a>
+      <nav><a href="./">HOME</a><a href="blog.html">ALL NOTES</a><button id="theme-toggle" type="button">LIGHT</button></nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap">
+    <div id="loading" class="state"><span class="eyebrow">THE DESK</span><p>Loading note…</p></div>
+    <section id="article-view" hidden>
+      <article>
+        <header class="article-head">
+          <a class="back" href="blog.html">← ALL DESK NOTES</a>
+          <p class="eyebrow">DESK NOTE</p>
+          <h1 id="article-title"></h1>
+          <p id="article-excerpt" class="article-excerpt"></p>
+          <div class="article-meta"><time id="article-date"></time><span>·</span><span id="read-time"></span></div>
+        </header>
+        <img id="article-thumbnail" class="article-thumbnail" alt="" hidden>
+        <div id="article-content" class="article-content"></div>
+      </article>
+    </section>
+    <section id="index-view" hidden>
+      <header class="index-head"><p class="eyebrow">THE DESK</p><h1>Notes from the order book.</h1><p>Research, market structure, and lessons paid for in full.</p></header>
+      <div id="all-posts" class="post-grid"></div>
+    </section>
+    <section id="not-found" class="state" hidden><span class="eyebrow">404 / CLOSED POSITION</span><h1>That note isn't on the desk.</h1><p>It may still be a draft, or the market ate it.</p><a href="blog.html">VIEW ALL NOTES →</a></section>
+  </main>
+
+  <footer><div class="wrap">© 2026 KLINIK PENYESALAN · NOT INVESTMENT ADVICE</div></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.12/dist/purify.min.js"></script>
+  <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/blog-page.js"></script>
+</body>
+</html>

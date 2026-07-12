@@ -394,6 +394,26 @@
   .fg-tip-sw.fg{background:var(--accent);}
   .fg-tip-sw.jci{background:var(--jci-line);}
 
+  /* ---- desk notes / blog ---- */
+  .blog-head{display:flex;justify-content:space-between;align-items:flex-end;gap:36px;margin-bottom:48px;}
+  .blog-head h2{font-size:clamp(34px,3.8vw,50px);font-weight:500;letter-spacing:-.02em;margin:22px 0 0;}
+  .blog-head-side{display:grid;justify-items:end;gap:18px;max-width:31em;}
+  .blog-head-side p{margin:0;color:var(--dim);font-size:16px;line-height:1.6;font-weight:300;text-align:right;}
+  .blog-head-side a{font-family:var(--mono);font-size:11px;letter-spacing:.09em;color:var(--accent);text-decoration:none;}
+  .blog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;}
+  .blog-card{display:flex;flex-direction:column;border:1px solid var(--line);background:var(--surface);text-decoration:none;color:inherit;box-shadow:var(--elev);}
+  .blog-card:hover{transform:translateY(-4px);border-color:var(--line-2);box-shadow:var(--elev-hi);}
+  .blog-card-image{height:210px;background:var(--surface-2) center/cover no-repeat;border-bottom:1px solid var(--line);}
+  .blog-card-image--empty{display:grid;place-items:center;background:linear-gradient(145deg,var(--surface),var(--bg));}
+  .blog-card-image--empty span{font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--accent);}
+  .blog-card-body{padding:25px;display:flex;flex:1;flex-direction:column;}
+  .blog-card-meta{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--mute);}
+  .blog-card-meta span{color:var(--accent);}.blog-card-body h3{font-size:24px;line-height:1.16;font-weight:500;margin:19px 0 12px;}
+  .blog-card-body p{font-size:14px;line-height:1.58;color:var(--dim);font-weight:300;margin:0 0 24px;flex:1;}
+  .blog-card-open{padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--accent);}
+  .blog-empty{grid-column:1/-1;padding:56px;text-align:center;border:1px solid var(--line);background:var(--surface);}
+  .blog-empty span{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--accent);}.blog-empty p{color:var(--dim);margin:15px 0 0;}
+
   /* ---- responsive ---- */
   @media (max-width:900px){
     .hero-grid{grid-template-columns:1fr;gap:48px;padding:72px 32px 84px;}
@@ -402,6 +422,7 @@
     .floor-social{flex-direction:row;border-left:0;border-top:1px solid var(--line);}
     .social-cell + .social-cell{border-top:0;border-left:1px solid var(--line);}
     .fg-grid{grid-template-columns:1fr;}
+    .blog-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
   @media (max-width:760px){
     nav.main .nav-link{display:none;}
@@ -425,6 +446,8 @@
     .fg-meter-body{padding:26px 22px 26px;gap:16px;}
     .fg-stats{padding-top:18px;}
     .fg-chart-body{padding:20px 16px 16px;}
+    .blog-head{align-items:flex-start;flex-direction:column;}.blog-head-side{justify-items:start;}.blog-head-side p{text-align:left;}
+    .blog-grid{grid-template-columns:1fr;}.blog-card-image{height:230px;}
   }
   @media (max-width:520px){
     .brand .name{display:none;}
@@ -501,6 +524,7 @@
       <a class="nav-link" href="#apps">TOOLS</a>
       <a class="nav-link" href="#sentiment">SENTIMENT</a>
       <a class="nav-link" href="#heatmap">HEATMAP</a>
+      <a class="nav-link" href="#desk">DESK</a>
       <a class="nav-link" href="#community">COMMUNITY</a>
       <button class="toggle" id="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false">
         <span class="dot"></span><span class="toggle-label">LIGHT</span>
@@ -828,6 +852,25 @@
   </div>
 </section>
 
+<!-- desk notes -->
+<section class="section" id="desk">
+  <div class="wrap section-inner">
+    <div class="blog-head">
+      <div>
+        <div class="eyebrow">FROM THE DESK</div>
+        <h2>Notes worth holding.</h2>
+      </div>
+      <div class="blog-head-side">
+        <p>Market structure, research, and lessons paid for in full. No tips, no targets—just the thinking behind the trade.</p>
+        <a href="blog.html">VIEW ALL DESK NOTES →</a>
+      </div>
+    </div>
+    <div id="blog-grid" class="blog-grid" aria-live="polite">
+      <div class="blog-empty"><span>OPENING THE DESK…</span></div>
+    </div>
+  </div>
+</section>
+
 <!-- footer -->
 <footer class="site">
   <div class="wrap footer-inner">
@@ -839,6 +882,7 @@
       <a href="#apps">TOOLS</a>
       <a href="#sentiment">SENTIMENT</a>
       <a href="#heatmap">HEATMAP</a>
+      <a href="#desk">DESK</a>
       <a href="#community">COMMUNITY</a>
       <a href="https://discord.gg/kpkp88" target="_blank" rel="noopener">DISCORD</a>
     </div>
@@ -1453,6 +1497,9 @@
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script src="assets/js/blog-feed.js"></script>
 <script>
   // Custom click events for Vercel Web Analytics (records on Pro plans; harmless no-op otherwise)
   document.addEventListener('click', function (e) {

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Desk Admin · Klinik Penyesalan</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="stylesheet" href="./admin.css">
+  <script>try{var t=localStorage.getItem('kp-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../">KLINIK PENYESALAN <span>/ DESK ADMIN</span></a>
+    <div class="top-actions">
+      <span id="user-email" class="user-email"></span>
+      <button id="theme-toggle" class="button button--ghost" type="button">LIGHT</button>
+      <button id="sign-out" class="button button--ghost" type="button" hidden>SIGN OUT</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="login-view" class="auth-shell">
+      <form id="login-form" class="panel auth-panel">
+        <p class="eyebrow">AUTHORIZED PERSONNEL</p>
+        <h1>Open the desk.</h1>
+        <p class="muted">Sign in with the editor account configured in Supabase.</p>
+        <label>Email<input id="email" name="email" type="email" autocomplete="username" required></label>
+        <label>Password<input id="password" name="password" type="password" autocomplete="current-password" required></label>
+        <button class="button button--primary" type="submit">SIGN IN →</button>
+        <p id="login-message" class="message" role="status"></p>
+      </form>
+    </section>
+
+    <section id="unauthorized-view" class="auth-shell" hidden>
+      <div class="panel auth-panel">
+        <p class="eyebrow">ACCESS DENIED</p>
+        <h1>Not on the desk.</h1>
+        <p class="muted">This account is valid, but it is not listed in <code>blog_admins</code>.</p>
+        <button id="unauthorized-sign-out" class="button button--primary" type="button">SIGN OUT</button>
+      </div>
+    </section>
+
+    <section id="admin-view" class="admin-shell" hidden>
+      <aside class="sidebar panel">
+        <div class="sidebar-head">
+          <div><p class="eyebrow">POSTS</p><h2>The desk</h2></div>
+          <button id="new-post" class="icon-button" type="button" aria-label="Create a new post">+</button>
+        </div>
+        <div class="filters" role="group" aria-label="Filter posts">
+          <button class="filter is-active" data-filter="all" type="button">ALL</button>
+          <button class="filter" data-filter="draft" type="button">DRAFTS</button>
+          <button class="filter" data-filter="published" type="button">LIVE</button>
+        </div>
+        <div id="post-list" class="post-list"><p class="empty">Loading posts…</p></div>
+      </aside>
+
+      <form id="editor-form" class="editor panel">
+        <div class="editor-head">
+          <div><p id="editor-kicker" class="eyebrow">NEW POST</p><h1 id="editor-heading">Untitled note</h1></div>
+          <div class="editor-actions">
+            <button id="delete-post" class="button button--danger" type="button" hidden>DELETE</button>
+            <button class="button button--primary" type="submit">SAVE POST</button>
+          </div>
+        </div>
+
+        <p id="editor-message" class="message" role="status"></p>
+        <input id="post-id" type="hidden">
+        <input id="thumbnail-url" type="hidden">
+        <input id="thumbnail-path" type="hidden">
+
+        <div class="form-grid">
+          <label class="span-2">Title<input id="title" maxlength="180" required placeholder="What the market taught us this week"></label>
+          <label>Slug<input id="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="market-notes-week-28"></label>
+          <label>Status<select id="status"><option value="draft">Draft</option><option value="published">Published</option></select></label>
+          <label class="span-2">Excerpt<textarea id="excerpt" maxlength="360" rows="3" placeholder="A short summary for the post card and search engines."></textarea></label>
+          <label>Publish date<input id="published-at" type="datetime-local"></label>
+          <label>Thumbnail<input id="thumbnail" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+        </div>
+
+        <div id="thumbnail-preview" class="thumbnail-preview" hidden></div>
+
+        <div class="content-tools">
+          <div><span class="field-label">Content</span><span class="muted small">Rich text is sanitized when saved.</span></div>
+          <label class="button button--ghost file-button">IMPORT DOCX<input id="docx-file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+        </div>
+        <textarea id="content"></textarea>
+      </form>
+    </section>
+  </main>
+
+  <div id="busy" class="busy" hidden><span></span><p>Working…</p></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.12/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tinymce@8.7.0/tinymce.min.js"></script>
+  <script src="../assets/js/supabase-config.js"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>
