@@ -30,6 +30,54 @@
     if (post.thumbnail_url) document.querySelector('meta[property="og:image"]').content = post.thumbnail_url;
   }
 
+  function setShareStatus(message) {
+    $('share-status').textContent = message || '';
+    window.clearTimeout(setShareStatus.timer);
+    if (message) setShareStatus.timer = window.setTimeout(function () { $('share-status').textContent = ''; }, 3200);
+  }
+
+  async function copyLink(url, successMessage) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        var field = document.createElement('textarea');
+        field.value = url;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        var copied = document.execCommand('copy');
+        field.remove();
+        if (!copied) throw new Error('Copy command was rejected');
+      }
+      setShareStatus(successMessage || 'LINK COPIED');
+    } catch (_error) {
+      setShareStatus('COPY FAILED');
+    }
+  }
+
+  function setupSharing(post) {
+    var url = 'https://www.klinikpenyesalan.com/blog.html?slug=' + encodeURIComponent(post.slug);
+    var shareData = { title: post.title, text: post.excerpt || post.title, url: url };
+    $('share-x').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(post.title) + '&url=' + encodeURIComponent(url);
+    $('share-facebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    $('share-copy').onclick = function () { copyLink(url); };
+    $('share-instagram').onclick = async function () {
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          setShareStatus('SHARED');
+        } catch (error) {
+          if (error && error.name !== 'AbortError') await copyLink(url, 'LINK COPIED FOR INSTAGRAM');
+        }
+      } else {
+        await copyLink(url, 'LINK COPIED FOR INSTAGRAM');
+      }
+    };
+  }
+
   async function renderArticle() {
     var result = await client.from('blog_posts').select('slug,title,excerpt,content_html,thumbnail_url,published_at,status').eq('slug', slug).eq('status', 'published').lte('published_at', new Date().toISOString()).maybeSingle();
     if (result.error) throw result.error;
@@ -39,6 +87,7 @@
     $('article-title').textContent = post.title;
     $('article-excerpt').textContent = post.excerpt || '';
     $('article-date').textContent = formatDate(post.published_at);
+    setupSharing(post);
     var text = window.DOMPurify.sanitize(post.content_html || '', { ALLOWED_TAGS: [] });
     $('read-time').textContent = Math.max(1, Math.ceil(text.trim().split(/\s+/).length / 220)) + ' MIN READ';
     $('article-content').innerHTML = window.DOMPurify.sanitize(post.content_html || '', {
@@ -46,6 +95,9 @@
       FORBID_TAGS: ['form', 'input', 'button', 'iframe', 'object', 'embed'],
       FORBID_ATTR: ['onerror', 'onload', 'onclick']
     });
+    var firstBlock = $('article-content').firstElementChild;
+    var normalize = function (value) { return String(value || '').replace(/\s+/g, ' ').trim(); };
+    if (firstBlock && /^(P|H1|H2)$/.test(firstBlock.tagName) && normalize(firstBlock.textContent) === normalize(post.title)) firstBlock.remove();
     if (post.thumbnail_url) {
       $('article-thumbnail').src = post.thumbnail_url;
       $('article-thumbnail').alt = post.title;
