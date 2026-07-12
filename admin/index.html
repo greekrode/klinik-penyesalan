@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Desk Admin · Klinik Penyesalan</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
-  <link rel="stylesheet" href="./admin.css">
+  <title>Newsletter Admin · Klinik Penyesalan</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="stylesheet" href="/admin/admin.css">
   <script>try{var t=localStorage.getItem('kp-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="../">KLINIK PENYESALAN <span>/ DESK ADMIN</span></a>
+    <a class="brand" href="/">KLINIK PENYESALAN <span>/ NEWSLETTER ADMIN</span></a>
     <div class="top-actions">
       <span id="user-email" class="user-email"></span>
       <button id="theme-toggle" class="button button--ghost" type="button">LIGHT</button>
@@ -23,7 +23,7 @@
     <section id="login-view" class="auth-shell">
       <form id="login-form" class="panel auth-panel">
         <p class="eyebrow">AUTHORIZED PERSONNEL</p>
-        <h1>Open the desk.</h1>
+        <h1>Manage the newsletter.</h1>
         <p class="muted">Sign in with the editor account configured in Supabase.</p>
         <label>Email<input id="email" name="email" type="email" autocomplete="username" required></label>
         <label>Password<input id="password" name="password" type="password" autocomplete="current-password" required></label>
@@ -35,7 +35,7 @@
     <section id="unauthorized-view" class="auth-shell" hidden>
       <div class="panel auth-panel">
         <p class="eyebrow">ACCESS DENIED</p>
-        <h1>Not on the desk.</h1>
+        <h1>Access not granted.</h1>
         <p class="muted">This account is valid, but it is not listed in <code>blog_admins</code>.</p>
         <button id="unauthorized-sign-out" class="button button--primary" type="button">SIGN OUT</button>
       </div>
@@ -44,7 +44,7 @@
     <section id="admin-view" class="admin-shell" hidden>
       <aside class="sidebar panel">
         <div class="sidebar-head">
-          <div><p class="eyebrow">POSTS</p><h2>The desk</h2></div>
+          <div><p class="eyebrow">POSTS</p><h2>Newsletter</h2></div>
           <button id="new-post" class="icon-button" type="button" aria-label="Create a new post">+</button>
         </div>
         <div class="filters" role="group" aria-label="Filter posts">
@@ -57,7 +57,7 @@
 
       <form id="editor-form" class="editor panel">
         <div class="editor-head">
-          <div><p id="editor-kicker" class="eyebrow">NEW POST</p><h1 id="editor-heading">Untitled note</h1></div>
+          <div><p id="editor-kicker" class="eyebrow">NEW POST</p><h1 id="editor-heading">Untitled article</h1></div>
           <div class="editor-actions">
             <button id="delete-post" class="button button--danger" type="button" hidden>DELETE</button>
             <button class="button button--primary" type="submit">SAVE POST</button>
@@ -70,8 +70,8 @@
         <input id="thumbnail-path" type="hidden">
 
         <div class="form-grid">
-          <label class="span-2">Title<input id="title" maxlength="180" required placeholder="What the market taught us this week"></label>
-          <label>Slug<input id="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="market-notes-week-28"></label>
+          <label class="span-2">Title<input id="title" maxlength="180" required placeholder="July 2026 market update"></label>
+          <label>Slug<input id="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="market-update-july-2026"></label>
           <label>Status<select id="status"><option value="draft">Draft</option><option value="published">Published</option></select></label>
           <label class="span-2">Excerpt<textarea id="excerpt" maxlength="360" rows="3" placeholder="A short summary for the post card and search engines."></textarea></label>
           <label>Publish date<input id="published-at" type="datetime-local"></label>
@@ -108,8 +108,8 @@
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tinymce@8.7.0/tinymce.min.js"></script>
-  <script src="../assets/js/supabase-config.js"></script>
-  <script src="../assets/js/docx-preflight.js"></script>
-  <script src="./admin.js"></script>
+  <script src="/assets/js/supabase-config.js"></script>
+  <script src="/assets/js/docx-preflight.js"></script>
+  <script src="/admin/admin.js"></script>
 </body>
 </html>
