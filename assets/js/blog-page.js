@@ -21,7 +21,7 @@
 
   function updateMeta(post) {
     var title = post.title + ' · Klinik Penyesalan';
-    var url = 'https://www.klinikpenyesalan.com/blog.html?slug=' + encodeURIComponent(post.slug);
+    var url = 'https://www.klinikpenyesalan.com/articles/' + encodeURIComponent(post.slug);
     document.title = title;
     document.querySelector('meta[name="description"]').content = post.excerpt || 'An article from the Klinik Penyesalan newsletter.';
     document.querySelector('link[rel="canonical"]').href = url;
@@ -59,7 +59,7 @@
   }
 
   function setupSharing(post) {
-    var url = 'https://www.klinikpenyesalan.com/blog.html?slug=' + encodeURIComponent(post.slug);
+    var url = 'https://www.klinikpenyesalan.com/articles/' + encodeURIComponent(post.slug);
     var shareData = { title: post.title, text: post.excerpt || post.title, url: url };
     $('share-x').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(post.title) + '&url=' + encodeURIComponent(url);
     $('share-facebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
@@ -112,7 +112,7 @@
     var posts = result.data || [];
     $('all-posts').innerHTML = posts.length ? posts.map(function (post) {
       var imageStyle = post.thumbnail_url ? ' style="background-image:url(&quot;' + escapeHtml(post.thumbnail_url) + '&quot;)"' : '';
-      return '<a class="post-card" href="blog.html?slug=' + encodeURIComponent(post.slug) + '"><div class="post-card-image"' + imageStyle + '></div><div class="post-card-body"><div class="post-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(formatDate(post.published_at)) + '</time></div><h2>' + escapeHtml(post.title) + '</h2><p>' + escapeHtml(post.excerpt || '') + '</p><span class="post-card-open">READ ARTICLE →</span></div></a>';
+      return '<a class="post-card" href="/articles/' + encodeURIComponent(post.slug) + '"><div class="post-card-image"' + imageStyle + '></div><div class="post-card-body"><div class="post-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(formatDate(post.published_at)) + '</time></div><h2>' + escapeHtml(post.title) + '</h2><p>' + escapeHtml(post.excerpt || '') + '</p><span class="post-card-open">READ ARTICLE →</span></div></a>';
     }).join('') : '<div class="newsletter-empty"><div class="empty-visual" aria-hidden="true"><span class="empty-kicker">KP / NEWSLETTER</span><strong>01</strong><div class="empty-bars"><i></i><i></i><i></i><i></i><i></i></div></div><div class="empty-copy"><span class="eyebrow">NO ARTICLES PUBLISHED</span><h2>The first edition is in progress.</h2><p>New research will appear here when it is ready.</p></div></div>';
     show('index-view');
   }

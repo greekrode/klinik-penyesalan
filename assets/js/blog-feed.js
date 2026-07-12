@@ -21,7 +21,7 @@
       var image = post.thumbnail_url
         ? '<div class="blog-card-image" style="background-image:url(&quot;' + escapeHtml(post.thumbnail_url) + '&quot;)"></div>'
         : '<div class="blog-card-image blog-card-image--empty"><span>KP / ' + String(index + 1).padStart(2, '0') + '</span></div>';
-      return '<a class="blog-card" href="blog.html?slug=' + encodeURIComponent(post.slug) + '">' + image +
+      return '<a class="blog-card" href="/articles/' + encodeURIComponent(post.slug) + '">' + image +
         '<div class="blog-card-body"><div class="blog-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(date) + '</time></div>' +
         '<h3>' + escapeHtml(post.title) + '</h3><p>' + escapeHtml(post.excerpt || '') + '</p><span class="blog-card-open">READ ARTICLE →</span></div></a>';
     }).join('');

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/blog.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "slug",
+          "value": "(?<articleSlug>[a-z0-9]+(?:-[a-z0-9]+)*)"
+        }
+      ],
+      "destination": "/articles/:articleSlug",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/articles/:slug", "destination": "/api/article" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
+  ]
+}
