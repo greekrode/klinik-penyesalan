@@ -61,7 +61,7 @@
     $('all-posts').innerHTML = posts.length ? posts.map(function (post) {
       var imageStyle = post.thumbnail_url ? ' style="background-image:url(&quot;' + escapeHtml(post.thumbnail_url) + '&quot;)"' : '';
       return '<a class="post-card" href="blog.html?slug=' + encodeURIComponent(post.slug) + '"><div class="post-card-image"' + imageStyle + '></div><div class="post-card-body"><div class="post-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(formatDate(post.published_at)) + '</time></div><h2>' + escapeHtml(post.title) + '</h2><p>' + escapeHtml(post.excerpt || '') + '</p><span class="post-card-open">READ ARTICLE →</span></div></a>';
-    }).join('') : '<div class="state"><span class="eyebrow">NO ARTICLES YET</span><p>The first article will be published here.</p></div>';
+    }).join('') : '<div class="newsletter-empty"><div class="empty-visual" aria-hidden="true"><span class="empty-kicker">KP / NEWSLETTER</span><strong>01</strong><div class="empty-bars"><i></i><i></i><i></i><i></i><i></i></div></div><div class="empty-copy"><span class="eyebrow">NO ARTICLES PUBLISHED</span><h2>The first edition is in progress.</h2><p>New research will appear here when it is ready.</p></div></div>';
     show('index-view');
   }
 
