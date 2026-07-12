@@ -16,13 +16,16 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="stylesheet" href="assets/css/blog.css">
   <link rel="stylesheet" href="assets/css/article-layout.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/fontawesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/brands.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/solid.min.css">
   <script>try{var t=localStorage.getItem('kp-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
   <header class="site-header">
     <div class="wrap header-inner">
       <a class="brand" href="./"><img src="assets/favicon-256.png" alt="" width="30" height="30"><span>KLINIK PENYESALAN</span></a>
-      <nav><a href="./">HOME</a><a href="blog.html">ALL ARTICLES</a><button id="theme-toggle" type="button">LIGHT</button></nav>
+      <nav><a href="./">HOME</a><a href="blog.html">ALL ARTICLES</a><button id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode"><i class="fa-solid fa-sun" aria-hidden="true"></i></button></nav>
     </div>
   </header>
 
@@ -30,26 +33,30 @@
     <div id="loading" class="state"><span class="eyebrow">KLINIK NEWSLETTER</span><p>Loading article…</p></div>
     <section id="article-view" hidden>
       <article>
+        <div class="article-context">
+          <a class="back" href="blog.html">← ALL ARTICLES</a>
+          <p class="eyebrow">KLINIK NEWSLETTER</p>
+        </div>
         <header id="article-hero" class="article-hero">
           <img id="article-thumbnail" class="article-thumbnail" alt="" hidden>
           <div class="article-hero-shade"></div>
           <div class="article-head">
-            <a class="back" href="blog.html">← ALL ARTICLES</a>
             <div class="article-head-copy">
-              <p class="eyebrow">KLINIK NEWSLETTER</p>
               <h1 id="article-title"></h1>
               <p id="article-excerpt" class="article-excerpt"></p>
-              <div class="article-meta"><time id="article-date"></time><span>·</span><span id="read-time"></span></div>
             </div>
           </div>
         </header>
-        <div class="article-share" aria-label="Share this article">
-          <span class="share-label">SHARE ARTICLE</span>
-          <a id="share-x" href="#" target="_blank" rel="noopener">X</a>
-          <a id="share-facebook" href="#" target="_blank" rel="noopener">FACEBOOK</a>
-          <button id="share-instagram" type="button">INSTAGRAM</button>
-          <button id="share-copy" type="button">COPY LINK</button>
-          <span id="share-status" class="share-status" role="status" aria-live="polite"></span>
+        <div class="article-utility">
+          <div class="article-meta"><time id="article-date"></time><span id="read-time"></span></div>
+          <div class="article-share" aria-label="Share this article">
+            <span class="share-label">SHARE</span>
+            <a id="share-x" href="#" target="_blank" rel="noopener" aria-label="Share on X" title="Share on X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
+            <a id="share-facebook" href="#" target="_blank" rel="noopener" aria-label="Share on Facebook" title="Share on Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+            <button id="share-instagram" type="button" aria-label="Share to Instagram" title="Share to Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></button>
+            <button id="share-copy" type="button" aria-label="Copy article link" title="Copy article link"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
+            <span id="share-status" class="share-status" role="status" aria-live="polite"></span>
+          </div>
         </div>
         <div id="article-content" class="article-content"></div>
       </article>

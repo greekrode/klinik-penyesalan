@@ -15,6 +15,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="256x256" href="assets/favicon-256.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/fontawesome.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/solid.min.css">
 
 <!-- Social / Open Graph -->
 <meta property="og:type" content="website">
@@ -120,11 +122,11 @@
   .nav-link{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--dim);
     text-decoration:none;padding:9px 15px;}
   .nav-link:hover{color:var(--text);}
-  .toggle{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--dim);
-    background:transparent;border:1px solid var(--line);padding:10px 14px;margin-left:8px;cursor:pointer;
-    display:flex;align-items:center;gap:8px;}
+  .toggle{width:40px;height:40px;font-size:14px;color:var(--dim);
+    background:transparent;border:1px solid var(--line);padding:0;margin-left:8px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:transform .13s cubic-bezier(.23,1,.32,1),color .15s ease,border-color .15s ease;}
   .toggle:hover{color:var(--text);border-color:var(--line-2);}
-  .toggle .dot{width:8px;height:8px;background:var(--accent);display:inline-block;}
+  .toggle:active{transform:scale(.97);}
 
   /* ---- ticker ---- */
   .ticker{overflow:hidden;border-bottom:1px solid var(--line);background:var(--surface);
@@ -526,9 +528,7 @@
       <a class="nav-link" href="#heatmap">HEATMAP</a>
       <a class="nav-link" href="#newsletter">NEWSLETTER</a>
       <a class="nav-link" href="#community">COMMUNITY</a>
-      <button class="toggle" id="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false">
-        <span class="dot"></span><span class="toggle-label">LIGHT</span>
-      </button>
+      <button class="toggle" id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode" aria-pressed="false"><i class="fa-solid fa-sun" aria-hidden="true"></i></button>
       <a class="btn btn--primary" style="padding:12px 18px;font-size:11px;margin-left:4px" href="https://discord.gg/kpkp88" target="_blank" rel="noopener">JOIN DISCORD →</a>
     </nav>
   </div>
@@ -893,10 +893,12 @@
   (function () {
     var root = document.documentElement;
     var btn = document.getElementById('theme-toggle');
-    var label = btn.querySelector('.toggle-label');
     function sync() {
       var dark = root.getAttribute('data-theme') !== 'light';
-      label.textContent = dark ? 'LIGHT' : 'DARK';
+      var label = dark ? 'Switch to light mode' : 'Switch to dark mode';
+      btn.innerHTML = '<i class="fa-solid fa-' + (dark ? 'sun' : 'moon') + '" aria-hidden="true"></i>';
+      btn.setAttribute('aria-label', label);
+      btn.title = label;
       btn.setAttribute('aria-pressed', String(!dark));
     }
     sync();

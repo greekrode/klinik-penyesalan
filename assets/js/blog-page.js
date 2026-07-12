@@ -4,6 +4,7 @@
   var config = window.KP_SUPABASE;
   var client = window.supabase.createClient(config.url, config.publishableKey);
   var slug = new URLSearchParams(window.location.search).get('slug');
+  var preparedShareImage = null;
 
   function escapeHtml(value) {
     return String(value || '').replace(/[&<>"']/g, function (char) {
@@ -21,7 +22,7 @@
 
   function updateMeta(post) {
     var title = post.title + ' · Klinik Penyesalan';
-    var url = 'https://www.klinikpenyesalan.com/blog.html?slug=' + encodeURIComponent(post.slug);
+    var url = 'https://www.klinikpenyesalan.com/articles/' + encodeURIComponent(post.slug);
     document.title = title;
     document.querySelector('meta[name="description"]').content = post.excerpt || 'An article from the Klinik Penyesalan newsletter.';
     document.querySelector('link[rel="canonical"]').href = url;
@@ -59,15 +60,31 @@
   }
 
   function setupSharing(post) {
-    var url = 'https://www.klinikpenyesalan.com/blog.html?slug=' + encodeURIComponent(post.slug);
+    var url = 'https://www.klinikpenyesalan.com/articles/' + encodeURIComponent(post.slug);
     var shareData = { title: post.title, text: post.excerpt || post.title, url: url };
     $('share-x').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(post.title) + '&url=' + encodeURIComponent(url);
     $('share-facebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    document.querySelector('.article-share').dataset.shareImage = post.thumbnail_url || '';
+    document.querySelector('.article-share').dataset.shareSlug = post.slug;
+    if (post.thumbnail_url) {
+      fetch(post.thumbnail_url, { mode: 'cors' }).then(function (response) {
+        if (!response.ok) throw new Error('Image unavailable');
+        return response.blob();
+      }).then(function (blob) {
+        if (!/^image\/(png|jpeg|webp|gif)$/.test(blob.type)) return;
+        var extension = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' }[blob.type];
+        preparedShareImage = new File([blob], post.slug + '.' + extension, { type: blob.type });
+      }).catch(function () {});
+    }
     $('share-copy').onclick = function () { copyLink(url); };
     $('share-instagram').onclick = async function () {
       if (navigator.share) {
         try {
-          await navigator.share(shareData);
+          if (preparedShareImage && navigator.canShare && navigator.canShare({ files: [preparedShareImage] })) {
+            await navigator.share({ files: [preparedShareImage], title: post.title, text: (post.excerpt || post.title) + '\n\n' + url });
+          } else {
+            await navigator.share(shareData);
+          }
           setShareStatus('SHARED');
         } catch (error) {
           if (error && error.name !== 'AbortError') await copyLink(url, 'LINK COPIED FOR INSTAGRAM');
@@ -112,14 +129,20 @@
     var posts = result.data || [];
     $('all-posts').innerHTML = posts.length ? posts.map(function (post) {
       var imageStyle = post.thumbnail_url ? ' style="background-image:url(&quot;' + escapeHtml(post.thumbnail_url) + '&quot;)"' : '';
-      return '<a class="post-card" href="blog.html?slug=' + encodeURIComponent(post.slug) + '"><div class="post-card-image"' + imageStyle + '></div><div class="post-card-body"><div class="post-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(formatDate(post.published_at)) + '</time></div><h2>' + escapeHtml(post.title) + '</h2><p>' + escapeHtml(post.excerpt || '') + '</p><span class="post-card-open">READ ARTICLE →</span></div></a>';
+      return '<a class="post-card" href="/articles/' + encodeURIComponent(post.slug) + '"><div class="post-card-image"' + imageStyle + '></div><div class="post-card-body"><div class="post-card-meta"><span>NEWSLETTER</span><time>' + escapeHtml(formatDate(post.published_at)) + '</time></div><h2>' + escapeHtml(post.title) + '</h2><p>' + escapeHtml(post.excerpt || '') + '</p><span class="post-card-open">READ ARTICLE →</span></div></a>';
     }).join('') : '<div class="newsletter-empty"><div class="empty-visual" aria-hidden="true"><span class="empty-kicker">KP / NEWSLETTER</span><strong>01</strong><div class="empty-bars"><i></i><i></i><i></i><i></i><i></i></div></div><div class="empty-copy"><span class="eyebrow">NO ARTICLES PUBLISHED</span><h2>The first edition is in progress.</h2><p>New research will appear here when it is ready.</p></div></div>';
     show('index-view');
   }
 
   function initTheme() {
     var button = $('theme-toggle');
-    function sync() { button.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? 'DARK' : 'LIGHT'; }
+    function sync() {
+      var light = document.documentElement.getAttribute('data-theme') === 'light';
+      var label = light ? 'Switch to dark mode' : 'Switch to light mode';
+      button.innerHTML = '<i class="fa-solid fa-' + (light ? 'moon' : 'sun') + '" aria-hidden="true"></i>';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
     sync();
     button.addEventListener('click', function () {
       var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
