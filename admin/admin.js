@@ -67,7 +67,7 @@
         height: 620,
         menubar: false,
         plugins: 'autolink lists link image table code wordcount searchreplace fullscreen',
-        toolbar: 'undo redo | blocks | bold italic underline | bullist numlist blockquote | link image table | removeformat code fullscreen',
+        toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist blockquote | link image table | removeformat code fullscreen',
         content_style: 'body{font-family:Arial,sans-serif;font-size:17px;line-height:1.7;max-width:820px;margin:32px auto;padding:0 24px}img{max-width:100%;height:auto}blockquote{border-left:3px solid #3bbcb4;margin-left:0;padding-left:20px;color:#667}a{color:#168c84}',
         image_caption: true,
         link_default_target: '_blank',

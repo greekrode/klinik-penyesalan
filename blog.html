@@ -29,14 +29,27 @@
     <div id="loading" class="state"><span class="eyebrow">KLINIK NEWSLETTER</span><p>Loading article…</p></div>
     <section id="article-view" hidden>
       <article>
-        <header class="article-head">
-          <a class="back" href="blog.html">← ALL ARTICLES</a>
-          <p class="eyebrow">KLINIK NEWSLETTER</p>
-          <h1 id="article-title"></h1>
-          <p id="article-excerpt" class="article-excerpt"></p>
-          <div class="article-meta"><time id="article-date"></time><span>·</span><span id="read-time"></span></div>
+        <header id="article-hero" class="article-hero">
+          <img id="article-thumbnail" class="article-thumbnail" alt="" hidden>
+          <div class="article-hero-shade"></div>
+          <div class="article-head">
+            <a class="back" href="blog.html">← ALL ARTICLES</a>
+            <div class="article-head-copy">
+              <p class="eyebrow">KLINIK NEWSLETTER</p>
+              <h1 id="article-title"></h1>
+              <p id="article-excerpt" class="article-excerpt"></p>
+              <div class="article-meta"><time id="article-date"></time><span>·</span><span id="read-time"></span></div>
+            </div>
+          </div>
         </header>
-        <img id="article-thumbnail" class="article-thumbnail" alt="" hidden>
+        <div class="article-share" aria-label="Share this article">
+          <span class="share-label">SHARE ARTICLE</span>
+          <a id="share-x" href="#" target="_blank" rel="noopener">X</a>
+          <a id="share-facebook" href="#" target="_blank" rel="noopener">FACEBOOK</a>
+          <button id="share-instagram" type="button">INSTAGRAM</button>
+          <button id="share-copy" type="button">COPY LINK</button>
+          <span id="share-status" class="share-status" role="status" aria-live="polite"></span>
+        </div>
         <div id="article-content" class="article-content"></div>
       </article>
     </section>
