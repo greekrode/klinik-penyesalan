@@ -312,6 +312,46 @@
   .fg-legend .sw-jci{background:var(--jci-line);opacity:.55;}
   .fg-legend .sw-fg{height:3px;background:var(--accent);}
 
+  /* ---- idx movers (leaders/laggards contribution board) ---- */
+  .mv-card{border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--elev);margin-bottom:18px;}
+  .mv-card .terminal-head .fg-head-meta{color:var(--mute);letter-spacing:.06em;}
+  .mv-range{display:inline-flex;gap:4px;margin-right:14px;}
+  .mv-range-btn{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;padding:3px 10px;
+    background:none;border:1px solid var(--line-2);color:var(--dim);cursor:pointer;}
+  .mv-range-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .mv-range-btn.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
+  .mv-strip{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:baseline;padding:12px 20px;
+    border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12.5px;color:var(--dim);}
+  .mv-strip b{color:var(--text);font-size:15px;font-weight:600;}
+  .mv-net.up,.mv-strip .up{color:var(--accent);}
+  .mv-net.down,.mv-strip .down{color:var(--fear);}
+  .mv-grid{display:grid;grid-template-columns:1fr 1fr;}
+  .mv-col{min-width:0;}
+  .mv-col+.mv-col{border-left:1px solid var(--line);}
+  .mv-col-head{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;padding:10px 20px;
+    border-bottom:1px solid var(--line);}
+  .mv-col-head--up{color:var(--accent);}
+  .mv-col-head--down{color:var(--fear);}
+  .mv-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
+  .mv-table th{font-weight:400;color:var(--mute);letter-spacing:.08em;font-size:10px;text-align:left;
+    padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .mv-table th.num,.mv-table td.num{text-align:right;}
+  .mv-table td{padding:7px 8px;border-bottom:1px solid var(--line);color:var(--dim);white-space:nowrap;}
+  .mv-table th:first-child,.mv-table td:first-child{padding-left:20px;}
+  .mv-table th:last-child,.mv-table td:last-child{padding-right:20px;}
+  .mv-table td.tk{color:var(--text);font-weight:600;}
+  .mv-table td.rank{color:var(--mute);width:30px;}
+  .mv-table tr:last-child td{border-bottom:none;}
+  .mv-table .pos{color:var(--accent);}
+  .mv-table .neg{color:var(--fear);}
+  .mv-foot{padding:10px 20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.08em;color:var(--mute);}
+  @media (max-width:860px){
+    .mv-grid{grid-template-columns:1fr;}
+    .mv-col+.mv-col{border-left:none;border-top:1px solid var(--line);}
+    .mv-table{font-size:11.5px;}
+  }
+
   /* ---- market heatmap (treemap) ---- */
   .hm-card{display:flex;flex-direction:column;border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--elev);}
   .hm-card .terminal-head .fg-head-meta{color:var(--mute);letter-spacing:.06em;}
@@ -789,10 +829,45 @@
   <div class="wrap section-inner">
     <div class="apps-head">
       <div>
-        <div class="eyebrow">MARKET MAP</div>
-        <h2>The whole board, at a glance.</h2>
+        <div class="eyebrow">MARKET PULSE</div>
+        <h2>Who moved the index — and the whole board, at a glance.</h2>
       </div>
-      <p class="intro">Every IDX stock sized by market cap, coloured by today's move, grouped by sector.</p>
+      <p class="intro">JCI's move decomposed into the stocks that drove it, then every IDX stock sized by market cap, coloured by move, grouped by sector.</p>
+    </div>
+    <div class="mv-card" id="movers">
+      <div class="terminal-head">
+        <span class="hm-crumb">IDX MOVERS · JCI POINT CONTRIBUTION</span>
+        <span class="hm-head-right">
+          <span class="mv-range" role="tablist" aria-label="Movers range">
+            <button class="mv-range-btn active" id="mv-1d" type="button" role="tab" aria-selected="true">1D</button>
+            <button class="mv-range-btn" id="mv-5d" type="button" role="tab" aria-selected="false">5D</button>
+          </span>
+          <span class="fg-head-meta" id="mv-asof">—</span>
+        </span>
+      </div>
+      <div class="mv-strip" id="mv-strip" hidden>
+        <span>JCI <b id="mv-last">—</b></span>
+        <span class="mv-net" id="mv-net">—</span>
+        <span class="mv-updown"><span class="up" id="mv-up">—</span>&nbsp;&nbsp;<span class="down" id="mv-down">—</span>&nbsp;&nbsp;<span id="mv-unch">—</span></span>
+      </div>
+      <div class="hm-status" id="mv-status">Loading index movers…</div>
+      <div class="mv-grid" id="mv-grid" hidden>
+        <div class="mv-col">
+          <div class="mv-col-head mv-col-head--up">LEADERS</div>
+          <table class="mv-table" aria-label="Index leaders — points added to JCI">
+            <thead><tr><th class="rank">#</th><th>TICKER</th><th class="num">PRICE</th><th class="num">%CHG</th><th class="num">PTS</th><th class="num">%IDX MV</th></tr></thead>
+            <tbody id="mv-leaders"></tbody>
+          </table>
+        </div>
+        <div class="mv-col">
+          <div class="mv-col-head mv-col-head--down">LAGGARDS</div>
+          <table class="mv-table" aria-label="Index laggards — points taken from JCI">
+            <thead><tr><th class="rank">#</th><th>TICKER</th><th class="num">PRICE</th><th class="num">%CHG</th><th class="num">PTS</th><th class="num">%IDX MV</th></tr></thead>
+            <tbody id="mv-laggards"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mv-foot">SORTED BY INDEX POINTS · WEIGHTS ≈ FULL MARKET CAP (FREE-FLOAT PENDING) <span id="mv-cov"></span></div>
     </div>
     <div class="hm-card">
       <div class="terminal-head">
@@ -1492,6 +1567,95 @@
     var rt;
     window.addEventListener('resize', function () { if (!data) return; clearTimeout(rt); rt = setTimeout(build, 200); });
   })();
+</script>
+
+<!-- IDX movers: fetch from same-origin proxy (/api/idx-movers) and render the
+     leaders/laggards JCI point-contribution board above the heatmap. -->
+<script>
+(function () {
+  var STATUS = document.getElementById('mv-status'), GRID = document.getElementById('mv-grid'),
+      STRIP = document.getElementById('mv-strip'), ASOF = document.getElementById('mv-asof'),
+      LEADERS = document.getElementById('mv-leaders'), LAGGARDS = document.getElementById('mv-laggards'),
+      COV = document.getElementById('mv-cov'),
+      B1D = document.getElementById('mv-1d'), B5D = document.getElementById('mv-5d');
+  if (!STATUS || !GRID || !LEADERS || !LAGGARDS) return;
+
+  var endDate = null, current = '1d', seq = 0;
+
+  function fmtNum(n, d) {
+    return (+n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function sgn(n, d) { return (n > 0 ? '+' : '') + fmtNum(n, d); }
+
+  function rowHtml(m, i) {
+    var cls = m.points < 0 ? 'neg' : 'pos';
+    var idx = (m.pct_idx_mv == null) ? '—' : sgn(m.pct_idx_mv, 2) + '%';
+    return '<tr><td class="rank">' + (i + 1) + '</td><td class="tk">' + m.ticker + '</td>' +
+      '<td class="num">' + fmtNum(m.close, 0) + '</td>' +
+      '<td class="num ' + cls + '">' + sgn(m.pct_change, 2) + '%</td>' +
+      '<td class="num ' + cls + '">' + sgn(m.points, 3) + '</td>' +
+      '<td class="num ' + cls + '">' + idx + '</td></tr>';
+  }
+
+  function fill(tbody, rows) {
+    var html = '';
+    for (var i = 0; i < rows.length; i++) html += rowHtml(rows[i], i);
+    tbody.innerHTML = html || '<tr><td colspan="6" class="rank">No movers in range.</td></tr>';
+  }
+
+  function render(j) {
+    var ix = j.index || {};
+    endDate = ix.end_date || endDate;
+    document.getElementById('mv-last').textContent = fmtNum(ix.end_close, 2);
+    var net = document.getElementById('mv-net');
+    net.textContent = sgn(ix.net_change, 2) + ' (' + sgn(ix.pct_change, 2) + '%)';
+    net.className = 'mv-net ' + (ix.net_change < 0 ? 'down' : 'up');
+    document.getElementById('mv-up').textContent = '▲ ' + ix.up;
+    document.getElementById('mv-down').textContent = '▼ ' + ix.down;
+    document.getElementById('mv-unch').textContent = '— ' + ix.unchanged;
+    ASOF.textContent = current === '1d' ? (ix.end_date || '') : (ix.base_date + ' → ' + ix.end_date);
+    fill(LEADERS, j.leaders || []);
+    fill(LAGGARDS, j.laggards || []);
+    if (COV) COV.textContent = (j.coverage == null) ? '' :
+      '· DECOMPOSITION COVERS ' + fmtNum(j.coverage * 100, 0) + '% OF THE JCI MOVE';
+    STATUS.style.display = 'none';
+    GRID.hidden = false; STRIP.hidden = false;
+  }
+
+  function fail(msg) { STATUS.textContent = msg; STATUS.style.display = ''; GRID.hidden = true; STRIP.hidden = true; }
+
+  function load(range) {
+    current = range;
+    var mySeq = ++seq;
+    var qs = '?limit=15';
+    if (range === '5d' && endDate) {
+      // 5 trading sessions: from = end − 6 calendar days; the server snaps the
+      // baseline to the last close before `from`.
+      var d = new Date(endDate + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - 6);
+      qs += '&from=' + d.toISOString().slice(0, 10) + '&to=' + endDate;
+    }
+    STATUS.textContent = 'Loading index movers…'; STATUS.style.display = '';
+    fetch('/api/idx-movers' + qs, { headers: { accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (j) {
+        if (mySeq !== seq) return;
+        if (j && j.index) render(j); else fail('Movers data unavailable.');
+      })
+      .catch(function () { if (mySeq === seq) fail('Movers data unavailable.'); });
+  }
+
+  function setActive(btn) {
+    B1D.classList.toggle('active', btn === B1D);
+    B5D.classList.toggle('active', btn === B5D);
+    B1D.setAttribute('aria-selected', btn === B1D ? 'true' : 'false');
+    B5D.setAttribute('aria-selected', btn === B5D ? 'true' : 'false');
+  }
+  if (B1D) B1D.addEventListener('click', function () { setActive(B1D); load('1d'); });
+  if (B5D) B5D.addEventListener('click', function () { setActive(B5D); load('5d'); });
+
+  load('1d');
+})();
 </script>
 
 <!-- Vercel Web Analytics — requires enabling it in the Vercel dashboard (Project → Analytics → Enable) -->
