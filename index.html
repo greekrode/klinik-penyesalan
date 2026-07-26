@@ -313,6 +313,12 @@
   .fg-legend .sw-fg{height:3px;background:var(--accent);}
 
   /* ---- idx movers (leaders/laggards contribution board) ---- */
+  /* Market pulse runs wider than the reading column: the treemap and a 6-column
+     table both buy real legibility from the extra width. Capped rather than
+     full-bleed so it still reads as a page, not a dashboard. */
+  .wrap--wide{max-width:1680px;}
+  .mp-asof{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--mute);
+    margin:0 0 10px;text-transform:uppercase;}
   .mv-card{border:1px solid var(--line-2);background:var(--surface);box-shadow:var(--elev);margin-bottom:18px;}
   .mv-card .terminal-head .fg-head-meta{color:var(--mute);letter-spacing:.06em;}
   .mv-range{display:inline-flex;gap:4px;margin-right:14px;}
@@ -843,7 +849,7 @@
 
 <!-- market heatmap -->
 <section class="section" id="heatmap">
-  <div class="wrap section-inner">
+  <div class="wrap wrap--wide section-inner">
     <div class="apps-head">
       <div>
         <div class="eyebrow">MARKET PULSE</div>
@@ -851,6 +857,9 @@
       </div>
       <p class="intro">JCI's move decomposed into the stocks that drove it, then every IDX stock sized by market cap, coloured by move, grouped by sector.</p>
     </div>
+    <!-- One as-of line for both cards below; the movers script owns it (it knows
+         the 5D range), the heatmap only fills it if movers hasn't answered. -->
+    <div class="mp-asof" id="mp-asof">—</div>
     <div class="mv-card" id="movers">
       <div class="terminal-head">
         <span class="hm-crumb">IDX MOVERS · JCI POINT CONTRIBUTION</span>
@@ -860,7 +869,6 @@
             <button class="mv-range-btn" id="mv-5d" type="button" role="tab" aria-selected="false">5D</button>
           </span>
           <input class="mv-search" id="mv-search" type="search" placeholder="FILTER TICKER" aria-label="Filter movers by ticker" autocomplete="off">
-          <span class="fg-head-meta" id="mv-asof">—</span>
         </span>
       </div>
       <div class="mv-strip" id="mv-strip" hidden>
@@ -908,7 +916,8 @@
       <div class="terminal-head">
         <span class="hm-crumb" id="hm-crumb">IDX HEATMAP</span>
         <span class="hm-head-right">
-          <span class="fg-head-meta" id="hm-asof">—</span>
+          <!-- Hidden, not deleted: the PNG export stamps its caption from this. -->
+          <span class="fg-head-meta" id="hm-asof" hidden>—</span>
           <span class="hm-tools">
             <button class="hm-tool" id="hm-fs" type="button" title="Fullscreen" aria-label="Toggle fullscreen">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
@@ -1273,6 +1282,12 @@
       if (p.length < 3) return String(iso);
       return (+p[2]) + ' ' + (MONTHS[(+p[1]) - 1] || p[1]) + ' ' + p[0];
     }
+    // "2026-07-24" -> "24 Jul 2026" (shared as-of line format)
+    function fmtShortDay(iso) {
+      var p = String(iso).slice(0, 10).split('-');
+      if (p.length < 3) return String(iso);
+      return (+p[2] < 10 ? '0' : '') + (+p[2]) + ' ' + (MONTHS[(+p[1]) - 1] || p[1]).slice(0, 3) + ' ' + p[0];
+    }
     function color(p) {
       var t = Math.max(-1, Math.min(1, p / 6)), k = Math.abs(t);
       var neu = [154, 163, 171], to = t >= 0 ? [46, 158, 91] : [229, 72, 77];
@@ -1466,6 +1481,12 @@
         Object.keys(groups).forEach(function (key) { groups[key].sort(function (a, b) { return b.cap - a.cap; }); });
         data = { broker_date: j.broker_date, tiles: tiles, groups: groups };
         if (ASOF && j.broker_date) ASOF.textContent = 'AS OF ' + fmtAsOf(j.broker_date);
+        // Shared line above both cards. The movers script owns it because it
+        // also knows the 5D range; fill it only if movers hasn't landed yet.
+        var shared = document.getElementById('mp-asof');
+        if (shared && j.broker_date && /^[\s—-]*$/.test(shared.textContent)) {
+          shared.textContent = 'AS OF ' + fmtShortDay(j.broker_date);
+        }
         if (STATUS) STATUS.style.display = 'none';
         if (WRAP) WRAP.style.display = '';
         build();
@@ -1609,9 +1630,9 @@
 <script>
 (function () {
   var STATUS = document.getElementById('mv-status'), GRID = document.getElementById('mv-grid'),
-      STRIP = document.getElementById('mv-strip'), ASOF = document.getElementById('mv-asof'),
+      STRIP = document.getElementById('mv-strip'),
       LEADERS = document.getElementById('mv-leaders'), LAGGARDS = document.getElementById('mv-laggards'),
-      SEARCH = document.getElementById('mv-search'),
+      SEARCH = document.getElementById('mv-search'), ASOF = document.getElementById('mp-asof'),
       B1D = document.getElementById('mv-1d'), B5D = document.getElementById('mv-5d');
   if (!STATUS || !GRID || !LEADERS || !LAGGARDS) return;
 
@@ -1627,6 +1648,14 @@
     return (+n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
   }
   function sgn(n, d) { return (n > 0 ? '+' : '') + fmtNum(n, d); }
+
+  // "2026-07-24" -> "24 Jul 2026"
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function fmtDay(iso) {
+    var p = String(iso || '').slice(0, 10).split('-');
+    if (p.length < 3) return '';
+    return (+p[2] < 10 ? '0' : '') + (+p[2]) + ' ' + (MON[(+p[1]) - 1] || p[1]) + ' ' + p[0];
+  }
 
   function rowHtml(m, i) {
     var cls = m.points < 0 ? 'neg' : 'pos';
@@ -1700,7 +1729,9 @@
     document.getElementById('mv-up').textContent = '▲ ' + ix.up;
     document.getElementById('mv-down').textContent = '▼ ' + ix.down;
     document.getElementById('mv-unch').textContent = '— ' + ix.unchanged;
-    ASOF.textContent = current === '1d' ? (ix.end_date || '') : (ix.base_date + ' → ' + ix.end_date);
+    if (ASOF) ASOF.textContent = current === '1d'
+      ? 'AS OF ' + fmtDay(ix.end_date)
+      : fmtDay(ix.base_date) + ' → ' + fmtDay(ix.end_date);
     data.leaders = j.leaders || [];
     data.laggards = j.laggards || [];
     paint();
