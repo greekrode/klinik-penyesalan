@@ -344,12 +344,29 @@
   .mv-table tr:last-child td{border-bottom:none;}
   .mv-table .pos{color:var(--accent);}
   .mv-table .neg{color:var(--fear);}
-  .mv-foot{padding:10px 20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:10.5px;
-    letter-spacing:.08em;color:var(--mute);}
+  .mv-count{color:var(--mute);letter-spacing:.06em;}
+  .mv-search{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    background:transparent;border:1px solid var(--line);border-radius:2px;color:var(--text);
+    padding:4px 8px;width:120px;outline:none;}
+  .mv-search::placeholder{color:var(--mute);letter-spacing:.1em;}
+  .mv-search:focus{border-color:var(--accent);}
+  .mv-search::-webkit-search-cancel-button{filter:grayscale(1);opacity:.5;}
+  /* Scroll the rows, not the page: the header stays pinned so a sorted column
+     is still identifiable 40 rows down. */
+  .mv-scroll{max-height:440px;overflow-y:auto;}
+  .mv-table thead th{position:sticky;top:0;z-index:1;background:var(--surface);}
+  .mv-table th[data-sort]{cursor:pointer;user-select:none;}
+  .mv-table th[data-sort]:hover{color:var(--text);}
+  .mv-table th[data-sort]::after{content:'';opacity:0;}
+  .mv-table th[data-sort].asc::after{content:' ▲';opacity:1;font-size:8px;}
+  .mv-table th[data-sort].desc::after{content:' ▼';opacity:1;font-size:8px;}
+  .mv-empty{padding:14px 20px;font-family:var(--mono);font-size:11px;color:var(--mute);}
   @media (max-width:860px){
     .mv-grid{grid-template-columns:1fr;}
     .mv-col+.mv-col{border-left:none;border-top:1px solid var(--line);}
     .mv-table{font-size:11.5px;}
+    .mv-search{width:88px;}
+    .mv-scroll{max-height:320px;}
   }
 
   /* ---- market heatmap (treemap) ---- */
@@ -842,6 +859,7 @@
             <button class="mv-range-btn active" id="mv-1d" type="button" role="tab" aria-selected="true">1D</button>
             <button class="mv-range-btn" id="mv-5d" type="button" role="tab" aria-selected="false">5D</button>
           </span>
+          <input class="mv-search" id="mv-search" type="search" placeholder="FILTER TICKER" aria-label="Filter movers by ticker" autocomplete="off">
           <span class="fg-head-meta" id="mv-asof">—</span>
         </span>
       </div>
@@ -853,21 +871,38 @@
       <div class="hm-status" id="mv-status">Loading index movers…</div>
       <div class="mv-grid" id="mv-grid" hidden>
         <div class="mv-col">
-          <div class="mv-col-head mv-col-head--up">LEADERS</div>
-          <table class="mv-table" aria-label="Index leaders — points added to JCI">
-            <thead><tr><th class="rank">#</th><th>TICKER</th><th class="num">PRICE</th><th class="num">%CHG</th><th class="num">PTS</th><th class="num">%IDX MV</th></tr></thead>
-            <tbody id="mv-leaders"></tbody>
-          </table>
+          <div class="mv-col-head mv-col-head--up">LEADERS <span class="mv-count" id="mv-leaders-count"></span></div>
+          <div class="mv-scroll">
+            <table class="mv-table" aria-label="Index leaders — points added to JCI">
+              <thead><tr>
+                <th class="rank">#</th>
+                <th data-sort="ticker">TICKER</th>
+                <th class="num" data-sort="close">PRICE</th>
+                <th class="num" data-sort="pct_change">%CHG</th>
+                <th class="num" data-sort="points">PTS</th>
+                <th class="num" data-sort="pct_idx_mv">%IDX MV</th>
+              </tr></thead>
+              <tbody id="mv-leaders"></tbody>
+            </table>
+          </div>
         </div>
         <div class="mv-col">
-          <div class="mv-col-head mv-col-head--down">LAGGARDS</div>
-          <table class="mv-table" aria-label="Index laggards — points taken from JCI">
-            <thead><tr><th class="rank">#</th><th>TICKER</th><th class="num">PRICE</th><th class="num">%CHG</th><th class="num">PTS</th><th class="num">%IDX MV</th></tr></thead>
-            <tbody id="mv-laggards"></tbody>
-          </table>
+          <div class="mv-col-head mv-col-head--down">LAGGARDS <span class="mv-count" id="mv-laggards-count"></span></div>
+          <div class="mv-scroll">
+            <table class="mv-table" aria-label="Index laggards — points taken from JCI">
+              <thead><tr>
+                <th class="rank">#</th>
+                <th data-sort="ticker">TICKER</th>
+                <th class="num" data-sort="close">PRICE</th>
+                <th class="num" data-sort="pct_change">%CHG</th>
+                <th class="num" data-sort="points">PTS</th>
+                <th class="num" data-sort="pct_idx_mv">%IDX MV</th>
+              </tr></thead>
+              <tbody id="mv-laggards"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="mv-foot">SORTED BY INDEX POINTS · <span id="mv-basis">WEIGHTS ≈ FULL MARKET CAP</span> <span id="mv-cov"></span></div>
     </div>
     <div class="hm-card">
       <div class="terminal-head">
@@ -1576,12 +1611,17 @@
   var STATUS = document.getElementById('mv-status'), GRID = document.getElementById('mv-grid'),
       STRIP = document.getElementById('mv-strip'), ASOF = document.getElementById('mv-asof'),
       LEADERS = document.getElementById('mv-leaders'), LAGGARDS = document.getElementById('mv-laggards'),
-      COV = document.getElementById('mv-cov'),
-      BASIS = document.getElementById('mv-basis'),
+      SEARCH = document.getElementById('mv-search'),
       B1D = document.getElementById('mv-1d'), B5D = document.getElementById('mv-5d');
   if (!STATUS || !GRID || !LEADERS || !LAGGARDS) return;
 
   var endDate = null, current = '1d', seq = 0;
+  // Last payload's rows, kept so sorting and filtering are pure re-renders —
+  // no refetch, so a 5-minute-cached response isn't burned on a column click.
+  var data = { leaders: [], laggards: [] };
+  // null = each side keeps the server's own ordering (leaders by points down,
+  // laggards by points up). A header click pins one key across both tables.
+  var sortKey = null, sortDir = 'desc';
 
   function fmtNum(n, d) {
     return (+n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -1601,7 +1641,53 @@
   function fill(tbody, rows) {
     var html = '';
     for (var i = 0; i < rows.length; i++) html += rowHtml(rows[i], i);
-    tbody.innerHTML = html || '<tr><td colspan="6" class="rank">No movers in range.</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="6" class="mv-empty">No matching tickers.</td></tr>';
+  }
+
+  function view(rows) {
+    var q = (SEARCH && SEARCH.value || '').trim().toUpperCase();
+    var out = q ? rows.filter(function (m) { return m.ticker.indexOf(q) !== -1; }) : rows.slice();
+    if (!sortKey) return out;
+    var dir = sortDir === 'asc' ? 1 : -1;
+    return out.sort(function (a, b) {
+      var x = a[sortKey], y = b[sortKey];
+      if (sortKey === 'ticker') return x < y ? -dir : x > y ? dir : 0;
+      // Nulls (pct_idx_mv on a flat index) sink to the bottom either direction.
+      if (x == null) return 1;
+      if (y == null) return -1;
+      return (x - y) * dir;
+    });
+  }
+
+  function paint() {
+    var lead = view(data.leaders), lag = view(data.laggards);
+    fill(LEADERS, lead);
+    fill(LAGGARDS, lag);
+    setCount('mv-leaders-count', lead.length, data.leaders.length);
+    setCount('mv-laggards-count', lag.length, data.laggards.length);
+  }
+
+  function setCount(id, shown, total) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = shown === total ? '(' + total + ')' : '(' + shown + '/' + total + ')';
+  }
+
+  function bindSort() {
+    var heads = document.querySelectorAll('.mv-table th[data-sort]');
+    for (var i = 0; i < heads.length; i++) {
+      heads[i].addEventListener('click', function () {
+        var key = this.getAttribute('data-sort');
+        // Same column toggles direction; a new column starts descending
+        // (tickers ascending — A first is what alphabetical means).
+        if (sortKey === key) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+        else { sortKey = key; sortDir = key === 'ticker' ? 'asc' : 'desc'; }
+        for (var k = 0; k < heads.length; k++) {
+          heads[k].classList.remove('asc', 'desc');
+          if (heads[k].getAttribute('data-sort') === sortKey) heads[k].classList.add(sortDir);
+        }
+        paint();
+      });
+    }
   }
 
   function render(j) {
@@ -1615,13 +1701,9 @@
     document.getElementById('mv-down').textContent = '▼ ' + ix.down;
     document.getElementById('mv-unch').textContent = '— ' + ix.unchanged;
     ASOF.textContent = current === '1d' ? (ix.end_date || '') : (ix.base_date + ' → ' + ix.end_date);
-    fill(LEADERS, j.leaders || []);
-    fill(LAGGARDS, j.laggards || []);
-    if (BASIS) BASIS.textContent = j.weight_basis === 'free_float_capped'
-      ? 'WEIGHTS = OFFICIAL JCI INDEX SHARES (FREE FLOAT & CAP APPLIED)'
-      : 'WEIGHTS ≈ FULL MARKET CAP (FREE-FLOAT PENDING)';
-    if (COV) COV.textContent = (j.coverage == null) ? '' :
-      '· DECOMPOSITION COVERS ' + fmtNum(j.coverage * 100, 0) + '% OF THE JCI MOVE';
+    data.leaders = j.leaders || [];
+    data.laggards = j.laggards || [];
+    paint();
     STATUS.style.display = 'none';
     GRID.hidden = false; STRIP.hidden = false;
   }
@@ -1631,7 +1713,7 @@
   function load(range) {
     current = range;
     var mySeq = ++seq;
-    var qs = '?limit=15';
+    var qs = '?limit=50'; // server cap — the whole leader/laggard board, scrolled
     if (range === '5d' && endDate) {
       // 5 trading sessions: from = end − 6 calendar days; the server snaps the
       // baseline to the last close before `from`.
@@ -1657,6 +1739,8 @@
   }
   if (B1D) B1D.addEventListener('click', function () { setActive(B1D); load('1d'); });
   if (B5D) B5D.addEventListener('click', function () { setActive(B5D); load('5d'); });
+  if (SEARCH) SEARCH.addEventListener('input', paint);
+  bindSort();
 
   load('1d');
 })();
