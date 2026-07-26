@@ -867,7 +867,7 @@
           </table>
         </div>
       </div>
-      <div class="mv-foot">SORTED BY INDEX POINTS · WEIGHTS ≈ FULL MARKET CAP (FREE-FLOAT PENDING) <span id="mv-cov"></span></div>
+      <div class="mv-foot">SORTED BY INDEX POINTS · <span id="mv-basis">WEIGHTS ≈ FULL MARKET CAP</span> <span id="mv-cov"></span></div>
     </div>
     <div class="hm-card">
       <div class="terminal-head">
@@ -1577,6 +1577,7 @@
       STRIP = document.getElementById('mv-strip'), ASOF = document.getElementById('mv-asof'),
       LEADERS = document.getElementById('mv-leaders'), LAGGARDS = document.getElementById('mv-laggards'),
       COV = document.getElementById('mv-cov'),
+      BASIS = document.getElementById('mv-basis'),
       B1D = document.getElementById('mv-1d'), B5D = document.getElementById('mv-5d');
   if (!STATUS || !GRID || !LEADERS || !LAGGARDS) return;
 
@@ -1616,6 +1617,9 @@
     ASOF.textContent = current === '1d' ? (ix.end_date || '') : (ix.base_date + ' → ' + ix.end_date);
     fill(LEADERS, j.leaders || []);
     fill(LAGGARDS, j.laggards || []);
+    if (BASIS) BASIS.textContent = j.weight_basis === 'free_float_capped'
+      ? 'WEIGHTS = OFFICIAL JCI INDEX SHARES (FREE FLOAT & CAP APPLIED)'
+      : 'WEIGHTS ≈ FULL MARKET CAP (FREE-FLOAT PENDING)';
     if (COV) COV.textContent = (j.coverage == null) ? '' :
       '· DECOMPOSITION COVERS ' + fmtNum(j.coverage * 100, 0) + '% OF THE JCI MOVE';
     STATUS.style.display = 'none';
