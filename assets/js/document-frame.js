@@ -14,7 +14,19 @@
         frame.style.height = (height || window.innerHeight) + 'px';
       } catch (_error) {}
     };
+    // Imported documents opt into theming by declaring data-theme attributes
+    // or [data-theme="dark"] styles; the site's toggle is mirrored onto them.
+    var syncTheme = function () {
+      try {
+        var inner = frame.contentDocument;
+        if (!inner || !inner.documentElement) return;
+        var theme = document.documentElement.getAttribute('data-theme') || 'dark';
+        inner.documentElement.setAttribute('data-theme', theme);
+        inner.querySelectorAll('[data-theme]').forEach(function (element) { element.setAttribute('data-theme', theme); });
+      } catch (_error) {}
+    };
     var arm = function () {
+      syncTheme();
       resize();
       try {
         frame.contentDocument.addEventListener('load', resize, true);
@@ -24,6 +36,9 @@
     };
     frame.addEventListener('load', arm);
     window.addEventListener('resize', resize);
+    try {
+      new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    } catch (_error) {}
     arm();
   }
 
