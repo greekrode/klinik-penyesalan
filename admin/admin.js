@@ -283,7 +283,7 @@
 
   async function importHtml(file) {
     if (!file || !/\.html?$/i.test(file.name)) throw new Error('Choose an .html file.');
-    if (file.size > 5 * 1024 * 1024) throw new Error('HTML files must be 5 MB or smaller.');
+    if (file.size > 1.5 * 1024 * 1024) throw new Error('HTML files must be 1.5 MB or smaller. Host large images in the media bucket or externally instead of embedding them as data URIs.');
     clearDocxWarning();
     setBusy(true, 'Importing HTML document…');
     try {
