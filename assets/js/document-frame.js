@@ -33,9 +33,14 @@
         // Measure at the real viewport height so vh-based sections resolve
         // against it; measuring at the frame's own height would feed the
         // result back into the next measurement and grow the frame forever.
+        // The momentary collapse shortens the page, so the browser clamps the
+        // scroll position — save it and restore it once the frame is back.
+        var scrollX = window.scrollX;
+        var scrollY = window.scrollY;
         frame.style.height = window.innerHeight + 'px';
         var height = Math.max(inner.documentElement.scrollHeight, inner.body ? inner.body.scrollHeight : 0);
         frame.style.height = (height || window.innerHeight) + 'px';
+        window.scrollTo(scrollX, scrollY);
       } catch (_error) {}
     };
     var arm = function () {
