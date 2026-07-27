@@ -27,15 +27,28 @@
       .replace(/<svg[\s\S]*?<\/svg>/gi, ' ');
   }
 
+  function forceBlankLinks(node) {
+    if (node.tagName === 'A') {
+      node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener');
+    }
+  }
+
   function prepareDocument(html) {
-    var clean = window.DOMPurify.sanitize(html, {
-      WHOLE_DOCUMENT: true,
-      USE_PROFILES: { html: true, svg: true, svgFilters: true },
-      ADD_TAGS: ['style', 'link', 'meta', 'title'],
-      ADD_ATTR: ['target', 'charset', 'content', 'property', 'media', 'crossorigin'],
-      FORBID_TAGS: ['form', 'input', 'button', 'iframe', 'object', 'embed'],
-      FORBID_ATTR: ['onerror', 'onload', 'onclick']
-    });
+    window.DOMPurify.addHook('afterSanitizeAttributes', forceBlankLinks);
+    var clean;
+    try {
+      clean = window.DOMPurify.sanitize(html, {
+        WHOLE_DOCUMENT: true,
+        USE_PROFILES: { html: true, svg: true, svgFilters: true },
+        ADD_TAGS: ['style', 'link', 'meta', 'title'],
+        ADD_ATTR: ['target', 'charset', 'content', 'property', 'media', 'crossorigin'],
+        FORBID_TAGS: ['form', 'input', 'button', 'iframe', 'object', 'embed'],
+        FORBID_ATTR: ['onerror', 'onload', 'onclick']
+      });
+    } finally {
+      window.DOMPurify.removeHook('afterSanitizeAttributes');
+    }
     return '<!doctype html>\n' + clean.replace(/<head([^>]*)>/i, '<head$1><base target="_blank">');
   }
 
