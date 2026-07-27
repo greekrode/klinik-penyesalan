@@ -153,6 +153,19 @@
   margin-left: 4px;
 }
 
+.article-content--document {
+  max-width: none;
+  padding-bottom: 90px;
+}
+
+.article-document {
+  display: block;
+  width: 100%;
+  min-height: 480px;
+  border: 0;
+  background: transparent;
+}
+
 @media (max-width: 720px) {
   .article-context {
     gap: 14px;

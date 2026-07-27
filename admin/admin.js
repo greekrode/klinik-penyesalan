@@ -3,7 +3,7 @@
 
   var config = window.KP_SUPABASE;
   var client = window.supabase.createClient(config.url, config.publishableKey);
-  var state = { posts: [], currentId: null, filter: 'all', session: null, slugTouched: false, pendingDocx: null };
+  var state = { posts: [], currentId: null, filter: 'all', session: null, slugTouched: false, pendingDocx: null, contentMode: 'rich', documentHtml: null };
   var editorPromise = null;
 
   var $ = function (id) { return document.getElementById(id); };
@@ -46,6 +46,45 @@
       FORBID_TAGS: ['form', 'input', 'button', 'iframe', 'object', 'embed'],
       FORBID_ATTR: ['onerror', 'onload', 'onclick']
     });
+  }
+
+  function isDocumentHtml(html) {
+    return /^\s*<!doctype/i.test(String(html || ''));
+  }
+
+  function forceBlankLinks(node) {
+    if (node.tagName === 'A') {
+      node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener');
+    }
+  }
+
+  function sanitizeDocument(html) {
+    window.DOMPurify.addHook('afterSanitizeAttributes', forceBlankLinks);
+    var clean;
+    try {
+      clean = window.DOMPurify.sanitize(html, {
+        WHOLE_DOCUMENT: true,
+        USE_PROFILES: { html: true, svg: true, svgFilters: true },
+        ADD_TAGS: ['style', 'link', 'meta', 'title'],
+        ADD_ATTR: ['target', 'charset', 'content', 'property', 'media', 'crossorigin'],
+        FORBID_TAGS: ['form', 'input', 'button', 'iframe', 'object', 'embed'],
+        FORBID_ATTR: ['onerror', 'onload', 'onclick']
+      });
+    } finally {
+      window.DOMPurify.removeHook('afterSanitizeAttributes');
+    }
+    clean = clean.replace(/<head([^>]*)>/i, '<head$1><base target="_blank">');
+    return '<!doctype html>\n' + clean;
+  }
+
+  function setContentMode(mode, documentHtml) {
+    state.contentMode = mode;
+    state.documentHtml = mode === 'document' ? documentHtml : null;
+    $('rich-editor').hidden = mode === 'document';
+    $('document-mode').hidden = mode !== 'document';
+    $('document-preview').srcdoc = mode === 'document' ? documentHtml : '';
+    if (mode === 'document' && window.tinymce.get('content')) window.tinymce.get('content').setContent('');
   }
 
   function escapeHtml(value) {
@@ -108,6 +147,7 @@
     $('delete-post').hidden = true;
     $('editor-kicker').textContent = 'NEW POST';
     $('editor-heading').textContent = 'Untitled article';
+    setContentMode('rich');
     if (window.tinymce.get('content')) window.tinymce.get('content').setContent('');
     setMessage(editorMessage, '');
     renderPosts();
@@ -130,7 +170,12 @@
     $('delete-post').hidden = false;
     $('editor-kicker').textContent = post.status === 'published' ? 'PUBLISHED POST' : 'DRAFT POST';
     $('editor-heading').textContent = post.title;
-    window.tinymce.get('content').setContent(post.content_html || '');
+    if (isDocumentHtml(post.content_html)) {
+      setContentMode('document', post.content_html);
+    } else {
+      setContentMode('rich');
+      window.tinymce.get('content').setContent(post.content_html || '');
+    }
     setMessage(editorMessage, '');
     renderPosts();
   }
@@ -239,12 +284,37 @@
           return { src: uploaded.url, alt: '' };
         })
       });
+      setContentMode('rich');
       window.tinymce.get('content').setContent(sanitize(result.value));
       var warnings = result.messages.filter(function (item) { return item.type === 'warning'; });
       setMessage(editorMessage, warnings.length ? 'DOCX imported with ' + warnings.length + ' formatting warning(s).' : 'DOCX imported successfully.', warnings.length ? '' : 'success');
     } finally {
       setBusy(false);
       clearDocxWarning();
+    }
+  }
+
+  async function importHtml(file) {
+    if (!file || !/\.html?$/i.test(file.name)) throw new Error('Choose an .html file.');
+    if (file.size > 1.5 * 1024 * 1024) throw new Error('HTML files must be 1.5 MB or smaller. Host large images in the media bucket or externally instead of embedding them as data URIs.');
+    clearDocxWarning();
+    setBusy(true, 'Importing HTML document…');
+    try {
+      var raw = await file.text();
+      var hadScripts = /<script\b/i.test(raw);
+      var doc = sanitizeDocument(raw);
+      setContentMode('document', doc);
+      var parsed = new DOMParser().parseFromString(doc, 'text/html');
+      if (!$('title').value.trim() && parsed.title.trim()) {
+        $('title').value = parsed.title.trim().slice(0, 180);
+        $('title').dispatchEvent(new Event('input'));
+      }
+      var description = parsed.querySelector('meta[name="description"]');
+      if (!$('excerpt').value.trim() && description && description.content.trim()) $('excerpt').value = description.content.trim().slice(0, 360);
+      setMessage(editorMessage, hadScripts ? 'HTML imported. Scripts were removed for safety.' : 'HTML imported. The article will render this document as designed.', 'success');
+    } finally {
+      setBusy(false);
+      $('html-file').value = '';
     }
   }
 
@@ -256,6 +326,7 @@
     var status = $('status').value;
     var publishedAt = $('published-at').value ? new Date($('published-at').value).toISOString() : null;
     if (!title || !slug) return setMessage(editorMessage, 'Title and slug are required.', 'error');
+    if (state.contentMode === 'document' && !state.documentHtml) return setMessage(editorMessage, 'Import an HTML file or switch back to the editor.', 'error');
     if (status === 'published' && !publishedAt) publishedAt = new Date().toISOString();
     setBusy(true, 'Saving post…');
     try {
@@ -272,7 +343,7 @@
         slug: slug,
         status: status,
         excerpt: $('excerpt').value.trim(),
-        content_html: sanitize(window.tinymce.get('content').getContent()),
+        content_html: state.contentMode === 'document' ? state.documentHtml : sanitize(window.tinymce.get('content').getContent()),
         published_at: publishedAt,
         thumbnail_url: thumbnailUrl,
         thumbnail_path: thumbnailPath,
@@ -376,6 +447,14 @@
     });
     $('docx-file').addEventListener('change', function () {
       inspectDocx($('docx-file').files[0]).catch(function (error) { setBusy(false); clearDocxWarning(); setMessage(editorMessage, error.message, 'error'); });
+    });
+    $('html-file').addEventListener('change', function () {
+      importHtml($('html-file').files[0]).catch(function (error) { setBusy(false); $('html-file').value = ''; setMessage(editorMessage, error.message, 'error'); });
+    });
+    $('discard-document').addEventListener('click', function () {
+      if (!window.confirm('Switch to the rich text editor? The imported HTML document will be replaced when you save.')) return;
+      setContentMode('rich');
+      setMessage(editorMessage, 'Editing as rich text. Import an HTML file again to restore document mode.');
     });
     $('cancel-docx').addEventListener('click', function () {
       clearDocxWarning();
