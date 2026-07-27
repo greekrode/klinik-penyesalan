@@ -405,6 +405,7 @@
 
   async function init() {
     initTheme();
+    if (window.KPDocumentFrame) window.KPDocumentFrame.follow($('document-preview'));
     $('login-form').addEventListener('submit', async function (event) {
       event.preventDefault();
       setMessage(loginMessage, 'Signing in…');

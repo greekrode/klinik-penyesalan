@@ -1,6 +1,30 @@
 (function () {
   'use strict';
 
+  // Imported documents opt into theming by declaring data-theme attributes
+  // or [data-theme="dark"] styles; the page's toggle is mirrored onto them.
+  function stamp(frame) {
+    try {
+      var inner = frame.contentDocument;
+      if (!inner || !inner.documentElement) return;
+      var theme = document.documentElement.getAttribute('data-theme') || 'dark';
+      inner.documentElement.setAttribute('data-theme', theme);
+      inner.querySelectorAll('[data-theme]').forEach(function (element) { element.setAttribute('data-theme', theme); });
+    } catch (_error) {}
+  }
+
+  function follow(frame, onChange) {
+    var apply = function () {
+      stamp(frame);
+      if (onChange) onChange();
+    };
+    frame.addEventListener('load', apply);
+    try {
+      new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    } catch (_error) {}
+    apply();
+  }
+
   function fit(frame) {
     var resize = function () {
       try {
@@ -24,8 +48,9 @@
     };
     frame.addEventListener('load', arm);
     window.addEventListener('resize', resize);
+    follow(frame, resize);
     arm();
   }
 
-  window.KPDocumentFrame = { fit: fit };
+  window.KPDocumentFrame = { fit: fit, follow: follow };
 })();
