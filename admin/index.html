@@ -83,8 +83,11 @@
         <div id="thumbnail-preview" class="thumbnail-preview" hidden></div>
 
         <div class="content-tools">
-          <div><span class="field-label">Content</span><span class="muted small">Rich text is sanitized when saved.</span></div>
-          <label class="button button--ghost file-button">IMPORT DOCX<input id="docx-file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+          <div><span class="field-label">Content</span><span class="muted small">Rich text and imported HTML are sanitized when saved.</span></div>
+          <div class="tool-buttons">
+            <label class="button button--ghost file-button">IMPORT HTML<input id="html-file" type="file" accept=".html,.htm,text/html"></label>
+            <label class="button button--ghost file-button">IMPORT DOCX<input id="docx-file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+          </div>
         </div>
         <div id="docx-warning" class="import-warning" role="alert" hidden>
           <div>
@@ -98,7 +101,17 @@
             <button id="continue-docx" class="button button--primary" type="button">IMPORT ANYWAY</button>
           </div>
         </div>
-        <textarea id="content"></textarea>
+        <div id="document-mode" class="document-mode" hidden>
+          <div class="document-note">
+            <div>
+              <p class="eyebrow">FULL HTML DOCUMENT</p>
+              <p class="muted small">This post is published exactly as previewed below, with its own styles and graphics. The title, excerpt, and thumbnail fields above still power post cards, sharing, and the article header.</p>
+            </div>
+            <button id="discard-document" class="button button--ghost" type="button">SWITCH TO EDITOR</button>
+          </div>
+          <iframe id="document-preview" class="document-preview" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" title="Imported HTML document preview"></iframe>
+        </div>
+        <div id="rich-editor"><textarea id="content"></textarea></div>
       </form>
     </section>
   </main>

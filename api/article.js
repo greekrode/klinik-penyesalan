@@ -41,6 +41,17 @@ function readTime(content) {
   return Math.max(1, Math.ceil(words / 220));
 }
 
+function isDocumentHtml(content) {
+  return /^\s*<!doctype/i.test(String(content || ''));
+}
+
+function documentText(content) {
+  return String(content || '')
+    .replace(/<head[\s\S]*?<\/head>/i, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<svg[\s\S]*?<\/svg>/gi, ' ');
+}
+
 function pageShell({ title, description, canonical, image, robots, body, articleMeta = '', jsonLd = '' }) {
   const fullTitle = title ? `${title} · Klinik Penyesalan` : 'Article not found · Klinik Penyesalan';
   const safeTitle = escapeHtml(fullTitle);
@@ -99,6 +110,7 @@ function pageShell({ title, description, canonical, image, robots, body, article
   </header>
   ${body}
   <footer><div class="wrap">© 2026 KLINIK PENYESALAN · NOT INVESTMENT ADVICE</div></footer>
+  <script src="/assets/js/document-frame.js"></script>
   <script src="/assets/js/article-page.js"></script>
 </body>
 </html>`;
@@ -117,7 +129,9 @@ function renderNotFound(slug) {
 
 function renderArticle(post) {
   const canonical = `${SITE_URL}/articles/${encodeURIComponent(post.slug)}`;
-  const content = stripDuplicateTitle(post.content_html, post.title);
+  const isDocument = isDocumentHtml(post.content_html);
+  const content = isDocument ? String(post.content_html) : stripDuplicateTitle(post.content_html, post.title);
+  const minutes = readTime(isDocument ? documentText(content) : content);
   const description = post.excerpt || 'An article from the Klinik Penyesalan newsletter.';
   const image = post.thumbnail_url || `${SITE_URL}/assets/og-image.png`;
   const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(canonical)}`;
@@ -137,6 +151,9 @@ function renderArticle(post) {
   const thumbnail = post.thumbnail_url
     ? `<img class="article-thumbnail" src="${escapeHtml(post.thumbnail_url)}" alt="${escapeHtml(post.title)}">`
     : '';
+  const contentBlock = isDocument
+    ? `<div class="article-content article-content--document"><iframe class="article-document" srcdoc="${escapeHtml(content)}" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" title="${escapeHtml(post.title)}"></iframe></div>`
+    : `<div class="article-content">${content}</div>`;
   const body = `<main class="wrap">
     <article>
       <div class="article-context">
@@ -154,7 +171,7 @@ function renderArticle(post) {
         </div>
       </header>
       <div class="article-utility">
-        <div class="article-meta"><time datetime="${escapeHtml(post.published_at)}">${escapeHtml(formatDate(post.published_at))}</time><span>${readTime(content)} MIN READ</span></div>
+        <div class="article-meta"><time datetime="${escapeHtml(post.published_at)}">${escapeHtml(formatDate(post.published_at))}</time><span>${minutes} MIN READ</span></div>
         <div class="article-share" aria-label="Share this article" data-share-url="${escapeHtml(canonical)}" data-share-title="${escapeHtml(post.title)}" data-share-text="${escapeHtml(description)}" data-share-image="${escapeHtml(post.thumbnail_url || '')}" data-share-slug="${escapeHtml(post.slug)}">
           <span class="share-label">SHARE</span>
           <a href="${escapeHtml(xUrl)}" target="_blank" rel="noopener" aria-label="Share on X" title="Share on X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
@@ -164,7 +181,7 @@ function renderArticle(post) {
           <span id="share-status" class="share-status" role="status" aria-live="polite"></span>
         </div>
       </div>
-      <div class="article-content">${content}</div>
+      ${contentBlock}
     </article>
   </main>`;
   return pageShell({

@@ -50,6 +50,9 @@
     syncTheme();
   });
 
+  var documentFrame = document.querySelector('.article-document');
+  if (documentFrame && window.KPDocumentFrame) window.KPDocumentFrame.fit(documentFrame);
+
   if (!share) return;
   prepareShareImage();
   document.getElementById('share-copy').addEventListener('click', function () { copyLink(); });
