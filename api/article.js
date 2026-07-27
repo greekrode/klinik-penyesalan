@@ -148,7 +148,7 @@ function renderArticle(post) {
     author: { '@type': 'Organization', name: 'Klinik Penyesalan', url: SITE_URL },
     publisher: { '@type': 'Organization', name: 'Klinik Penyesalan', url: SITE_URL },
   }).replace(/</g, '\\u003c');
-  const thumbnail = post.thumbnail_url
+  const thumbnail = post.thumbnail_url && !isDocument
     ? `<img class="article-thumbnail" src="${escapeHtml(post.thumbnail_url)}" alt="${escapeHtml(post.title)}">`
     : '';
   const contentBlock = isDocument
