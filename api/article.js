@@ -160,7 +160,7 @@ function renderArticle(post) {
         <a class="back" href="/blog.html">← ALL ARTICLES</a>
         <p class="eyebrow">KLINIK NEWSLETTER</p>
       </div>
-      <header class="article-hero">
+      <header class="article-hero${isDocument ? ' article-hero--document' : ''}">
         ${thumbnail}
         <div class="article-hero-shade"></div>
         <div class="article-head">
