@@ -373,6 +373,7 @@
     .mv-table{font-size:11.5px;}
     .mv-search{width:88px;}
     .mv-scroll{max-height:320px;}
+    #movers .terminal-head{flex-wrap:wrap;row-gap:8px;}
   }
 
   /* ---- market heatmap (treemap) ---- */
@@ -401,6 +402,16 @@
   .hm-tool:disabled{opacity:.4;cursor:default;}
   .hm-tool svg{width:14px;height:14px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round;}
+  /* capture menu (save image / copy to clipboard) — movers + heatmap toolbars */
+  .kp-shot-wrap{position:relative;display:inline-flex;}
+  .kp-shot-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:30;min-width:176px;display:none;
+    flex-direction:column;background:var(--surface-2);border:1px solid var(--line-2);box-shadow:var(--elev-hi);}
+  .kp-shot-menu.on{display:flex;}
+  .kp-shot-menu button{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-align:left;
+    background:none;border:0;color:var(--dim);padding:10px 13px;cursor:pointer;white-space:nowrap;}
+  .kp-shot-menu button:hover:not(:disabled){background:var(--surface);color:var(--text);}
+  .kp-shot-menu button:disabled{opacity:.45;cursor:default;}
+  .kp-shot-menu button + button{border-top:1px solid var(--line);}
   .hm-card:fullscreen{background:var(--bg);padding:14px 18px;justify-content:flex-start;}
   .hm-card:fullscreen .hm-body{flex:1;display:flex;flex-direction:column;min-height:0;}
   .hm-card:fullscreen #hm-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
@@ -869,6 +880,11 @@
             <button class="mv-range-btn" id="mv-5d" type="button" role="tab" aria-selected="false">5D</button>
           </span>
           <input class="mv-search" id="mv-search" type="search" placeholder="FILTER TICKER" aria-label="Filter movers by ticker" autocomplete="off">
+          <span class="hm-tools kp-shot-wrap">
+            <button class="hm-tool" id="mv-shot" type="button" title="Capture image" aria-label="Capture movers image" aria-haspopup="menu" aria-expanded="false" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 8h3l1.7-2.5h5.6L16.5 8h3v10h-15z"/><circle cx="12" cy="12.7" r="3.2"/></svg>
+            </button>
+          </span>
         </span>
       </div>
       <div class="mv-strip" id="mv-strip" hidden>
@@ -922,9 +938,11 @@
             <button class="hm-tool" id="hm-fs" type="button" title="Fullscreen" aria-label="Toggle fullscreen">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
             </button>
-            <button class="hm-tool" id="hm-shot" type="button" title="Save image" aria-label="Save heatmap image">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v4h16v-4M12 4v10M8 10l4 4 4-4"/></svg>
-            </button>
+            <span class="kp-shot-wrap">
+              <button class="hm-tool" id="hm-shot" type="button" title="Capture image" aria-label="Capture heatmap image" aria-haspopup="menu" aria-expanded="false" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 8h3l1.7-2.5h5.6L16.5 8h3v10h-15z"/><circle cx="12" cy="12.7" r="3.2"/></svg>
+              </button>
+            </span>
           </span>
         </span>
       </div>
@@ -1253,6 +1271,176 @@
   })();
 </script>
 
+<!-- Shared capture kit for the market-pulse cards: brand header/footer chrome,
+     the repeating logo watermark, SVG→PNG rasterizing, and the save-image /
+     copy-to-clipboard menu. Composition stays in each card's own script. -->
+<script>
+  window.KPCapture = (function () {
+    var fontP = null;
+
+    function cssVar(name, fallback) {
+      var v = getComputedStyle(document.body).getPropertyValue(name).trim();
+      return v || fallback;
+    }
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    // Palette resolved at capture time, so exports follow the active theme.
+    function palette() {
+      return {
+        bg: cssVar('--bg', '#13171b'), surface: cssVar('--surface', '#181d23'),
+        line: cssVar('--line', 'rgba(232,237,240,.10)'), line2: cssVar('--line-2', 'rgba(232,237,240,.20)'),
+        text: cssVar('--text', '#e9ecef'), dim: cssVar('--dim', '#9aa3ab'), mute: cssVar('--mute', '#7e8893'),
+        accent: cssVar('--accent', '#3bbcb4'), fear: cssVar('--fear', '#d2565b')
+      };
+    }
+
+    // Inline the brand font so exported text isn't a generic monospace fallback.
+    // Cached: a session's second capture shouldn't refetch the woff2.
+    function fontFace() {
+      if (fontP) return fontP;
+      fontP = fetch('assets/fonts/jetbrains-mono.woff2')
+        .then(function (r) { return r.ok ? r.blob() : Promise.reject(); })
+        .then(function (b) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(b); }); })
+        .then(function (uri) { return "@font-face{font-family:'JetBrains Mono';font-weight:400 700;src:url(" + uri + ") format('woff2');}"; })
+        .catch(function () { fontP = null; return ''; });
+      return fontP;
+    }
+
+    // The ascending-bars mark from the page's shared <symbol>, serialized for a
+    // standalone SVG. mono=true strips both fills so a wrapper <g> can tint it.
+    function markInner(mono) {
+      var sym = document.getElementById('kp-mark');
+      if (!sym) return '';
+      var out = '';
+      for (var n = 0; n < sym.childNodes.length; n++) {
+        if (sym.childNodes[n].nodeType !== 1) continue;
+        out += new XMLSerializer().serializeToString(sym.childNodes[n]);
+      }
+      return mono
+        ? out.replace(/fill="#33b2ab"/g, '').replace(/style="fill:var\(--logo-light\)"/g, '')
+        : out.replace(/var\(--logo-light\)/g, cssVar('--logo-light', '#d8d8d8'));
+    }
+    function logoMark(x, y, h) {
+      var w = Math.round(h * 600 / 499);
+      return { w: w, svg: '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="0 0 600 499">' + markInner(false) + '</svg>' };
+    }
+    // Diagonally repeating one-colour logo, faint enough to sit under the data.
+    function watermark(id) {
+      var inner = markInner(true);
+      if (!inner) return { def: '', rect: function () { return ''; } };
+      var lw = 46, lh = Math.round(lw * 499 / 600), cw = 190, ch = 150;
+      function tile(x, y) { return '<svg x="' + x + '" y="' + y + '" width="' + lw + '" height="' + lh + '" viewBox="0 0 600 499">' + inner + '</svg>'; }
+      var def = '<pattern id="' + id + '" width="' + cw + '" height="' + ch + '" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">' +
+        '<g fill="' + cssVar('--text', '#e9ecef') + '" opacity=".05">' + tile(16, 18) + tile(16 + cw / 2, 18 + ch / 2) + '</g></pattern>';
+      return {
+        def: def,
+        rect: function (x, y, w, h) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="url(#' + id + ')"/>'; }
+      };
+    }
+
+    // Shared chrome: logo + wordmark on the left, an accent title on the right…
+    function brandHeader(P, outW, pad, headH, title) {
+      var lg = logoMark(pad, Math.round((headH - 34) / 2), 34);
+      return lg.svg +
+        '<text x="' + (pad + lg.w + 13) + '" y="' + (headH / 2 + 6) + '" font-size="18" font-weight="600" letter-spacing="2.4" fill="' + P.text + '">KLINIK PENYESALAN</text>' +
+        '<text x="' + (outW - pad) + '" y="' + (headH / 2 + 5) + '" font-size="12" letter-spacing="2" text-anchor="end" fill="' + P.accent + '">' + esc(title) + '</text>';
+    }
+    // …and the site URL + as-of date under a rule, with room for a centre block.
+    function brandFooter(P, outW, pad, fy, footH, center, right) {
+      var midF = fy + footH / 2;
+      return '<line x1="' + pad + '" y1="' + fy + '" x2="' + (outW - pad) + '" y2="' + fy + '" stroke="' + P.surface + '"/>' +
+        '<text x="' + pad + '" y="' + (midF + 4) + '" font-size="12" letter-spacing="1" fill="' + P.dim + '">www.klinikpenyesalan.com</text>' +
+        (center || '') +
+        '<text x="' + (outW - pad) + '" y="' + (midF + 4) + '" font-size="11" letter-spacing="1" text-anchor="end" fill="' + P.mute + '">' + esc(right) + '</text>';
+    }
+
+    function rasterize(svg, w, h, scale) {
+      return new Promise(function (resolve, reject) {
+        var url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+        var img = new Image();
+        img.onload = function () {
+          var cv = document.createElement('canvas');
+          cv.width = Math.round(w * scale); cv.height = Math.round(h * scale);
+          var ctx = cv.getContext('2d');
+          ctx.setTransform(scale, 0, 0, scale, 0, 0);
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          cv.toBlob(function (blob) { if (blob) resolve(blob); else reject(new Error('png encode failed')); }, 'image/png');
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('svg decode failed')); };
+        img.src = url;
+      });
+    }
+
+    function save(blob, name) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    }
+    // Safari only honours clipboard writes primed synchronously inside the user
+    // gesture, so the ClipboardItem wraps the still-pending blob promise.
+    function copy(blobP) {
+      if (!(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem)) {
+        return Promise.reject(new Error('clipboard unsupported'));
+      }
+      try {
+        return navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
+      } catch (e) { // older engines accept only resolved blobs
+        return blobP.then(function (b) { return navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]); });
+      }
+    }
+
+    // Save/copy popover on a toolbar button. opts.make() -> Promise<Blob>,
+    // opts.filename() -> download name for the save path.
+    function attach(btn, opts) {
+      var wrap = btn.closest('.kp-shot-wrap') || btn.parentElement;
+      var menu = document.createElement('div');
+      menu.className = 'kp-shot-menu';
+      menu.setAttribute('role', 'menu');
+      menu.innerHTML = '<button type="button" role="menuitem" data-act="save">SAVE IMAGE</button>' +
+        '<button type="button" role="menuitem" data-act="copy">COPY TO CLIPBOARD</button>';
+      wrap.appendChild(menu);
+      var busy = false, closeT = 0;
+      function reset() {
+        var bs = menu.querySelectorAll('button');
+        bs[0].textContent = 'SAVE IMAGE'; bs[1].textContent = 'COPY TO CLIPBOARD';
+        bs[0].disabled = bs[1].disabled = false;
+      }
+      function close() { clearTimeout(closeT); menu.classList.remove('on'); btn.setAttribute('aria-expanded', 'false'); reset(); }
+      btn.addEventListener('click', function () {
+        if (menu.classList.contains('on')) { close(); return; }
+        clearTimeout(closeT); if (!busy) reset();
+        menu.classList.add('on'); btn.setAttribute('aria-expanded', 'true');
+      });
+      document.addEventListener('click', function (e) { if (menu.classList.contains('on') && !wrap.contains(e.target)) close(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('on')) close(); });
+      menu.addEventListener('click', function (e) {
+        var item = e.target.closest('button[data-act]');
+        if (!item || busy) return;
+        busy = true;
+        var act = item.getAttribute('data-act');
+        var bs = menu.querySelectorAll('button');
+        for (var i = 0; i < bs.length; i++) bs[i].disabled = bs[i] !== item;
+        item.textContent = 'WORKING…';
+        var blobP = opts.make();
+        var done = act === 'copy' ? copy(blobP) : blobP.then(function (b) { save(b, opts.filename()); });
+        done.then(function () { item.textContent = act === 'copy' ? 'COPIED ✓' : 'SAVED ✓'; })
+          .catch(function () { item.textContent = act === 'copy' ? 'COPY FAILED' : 'CAPTURE FAILED'; })
+          .then(function () { busy = false; closeT = setTimeout(close, 1200); });
+      });
+    }
+
+    return { cssVar: cssVar, esc: esc, palette: palette, fontFace: fontFace, logoMark: logoMark,
+             watermark: watermark, brandHeader: brandHeader, brandFooter: brandFooter,
+             rasterize: rasterize, attach: attach };
+  })();
+</script>
+
 <!-- Market heatmap: fetch from same-origin proxy (/api/heatmap), render a
      sector-grouped treemap (tile size = market cap, colour = daily % change). -->
 <script>
@@ -1489,6 +1677,7 @@
         }
         if (STATUS) STATUS.style.display = 'none';
         if (WRAP) WRAP.style.display = '';
+        if (SHOT) SHOT.disabled = false; // there's something to capture now
         build();
       })
       .catch(function () { fail('Couldn’t load the heatmap.'); });
@@ -1505,42 +1694,15 @@
       document.addEventListener('fullscreenchange', function () { if (data) build(); });
     }
 
-    function cssVar(name, fallback) {
-      var v = getComputedStyle(document.body).getPropertyValue(name).trim();
-      return v || fallback;
-    }
-    // Try to inline the brand font so exported text isn't a generic monospace fallback.
-    function fontFace() {
-      return fetch('assets/fonts/jetbrains-mono.woff2')
-        .then(function (r) { return r.ok ? r.blob() : Promise.reject(); })
-        .then(function (b) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(b); }); })
-        .then(function (uri) { return "@font-face{font-family:'JetBrains Mono';font-weight:400 700;font-display:swap;src:url(" + uri + ") format('woff2');}"; })
-        .catch(function () { return ''; });
-    }
-
-    function saveImage() {
-      if (!data || !SVG.getAttribute('viewBox')) return;
-      SHOT.disabled = true;
+    // Capture: brand header + the live treemap + legend footer, watermarked,
+    // rasterized to a PNG blob for the save/copy menu.
+    function captureBlob() {
+      var KC = window.KPCapture;
+      if (!KC || !data || !SVG.getAttribute('viewBox')) return Promise.reject(new Error('no data'));
       var vb = SVG.getAttribute('viewBox').split(/\s+/).map(Number), w = vb[2], h = vb[3];
-      var bg = cssVar('--bg', '#13171b'), surface = cssVar('--surface', '#181d23'),
-          text = cssVar('--text', '#e9ecef'), dim = cssVar('--dim', '#9aa3ab'),
-          mute = cssVar('--mute', '#7e8893'), accent = cssVar('--accent', '#3bbcb4'),
-          logoLight = cssVar('--logo-light', '#d8d8d8');
+      var P = KC.palette();
       var pad = 36, headH = 76, footH = 60, outW = w + pad * 2, outH = headH + h + footH;
       var asof = (ASOF && ASOF.textContent || '').toUpperCase();
-
-      // brand logo: clone the shared <symbol> and resolve its CSS-var fill to a literal colour
-      var sym = document.getElementById('kp-mark');
-      var logoH = 34, logoW = Math.round(logoH * 600 / 499), logoY = Math.round((headH - logoH) / 2);
-      var logoSvg = '';
-      if (sym) {
-        var lg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        lg.setAttribute('x', pad); lg.setAttribute('y', logoY);
-        lg.setAttribute('width', logoW); lg.setAttribute('height', logoH);
-        lg.setAttribute('viewBox', '0 0 600 499');
-        for (var n = 0; n < sym.childNodes.length; n++) lg.appendChild(sym.childNodes[n].cloneNode(true));
-        logoSvg = new XMLSerializer().serializeToString(lg).replace(/var\(--logo-light\)/g, logoLight);
-      }
 
       // the heatmap itself: a nested, self-contained copy positioned under the header
       var clone = SVG.cloneNode(true);
@@ -1548,56 +1710,40 @@
       clone.setAttribute('x', pad); clone.setAttribute('y', headH);
       clone.setAttribute('width', w); clone.setAttribute('height', h);
       var heat = new XMLSerializer().serializeToString(clone);
+      var wm = KC.watermark('hm-wm');
 
-      fontFace().then(function (ff) {
+      return KC.fontFace().then(function (ff) {
         var style = ff +
           "text{font-family:'JetBrains Mono',ui-monospace,monospace;}" +
-          '.hm-tile{stroke:' + surface + ';stroke-width:1.2;}' +
+          '.hm-tile{stroke:' + P.surface + ';stroke-width:1.2;}' +
           '.hm-lbl{fill:#fff;font-weight:600;paint-order:stroke;stroke:rgba(0,0,0,.42);stroke-width:.5px;}' +
           '.hm-pct{fill:rgba(255,255,255,.85);}' +
-          '.hm-sec{fill:' + dim + ';letter-spacing:.1em;}' +
+          '.hm-sec{fill:' + P.dim + ';letter-spacing:.1em;}' +
           '.hm-tile-spark{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.1;}';
         var fy = headH + h, midF = fy + footH / 2;       // footer band
         var lx = outW / 2 - 78;                          // legend block, centred
-        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + outW + '" height="' + outH + '" viewBox="0 0 ' + outW + ' ' + outH + '">' +
-          '<defs><linearGradient id="hmlg"><stop offset="0" stop-color="#e5484d"/><stop offset="0.5" stop-color="#9aa3ab"/><stop offset="1" stop-color="#2e9e5b"/></linearGradient></defs>' +
-          '<style>' + style + '</style>' +
-          '<rect width="' + outW + '" height="' + outH + '" fill="' + bg + '"/>' +
-          logoSvg +
-          '<text x="' + (pad + logoW + 13) + '" y="' + (headH / 2 + 6) + '" font-size="18" font-weight="600" letter-spacing="2.4" fill="' + text + '">KLINIK PENYESALAN</text>' +
-          '<text x="' + (outW - pad) + '" y="' + (headH / 2 + 5) + '" font-size="12" letter-spacing="2" text-anchor="end" fill="' + accent + '">' + esc('IDX MARKET HEATMAP' + (focus ? ' · ' + focus.toUpperCase() : '')) + '</text>' +
-          heat +
-          '<line x1="' + pad + '" y1="' + fy + '" x2="' + (outW - pad) + '" y2="' + fy + '" stroke="' + surface + '"/>' +
-          '<text x="' + pad + '" y="' + (midF + 4) + '" font-size="12" letter-spacing="1" fill="' + dim + '">www.klinikpenyesalan.com</text>' +
-          '<text x="' + lx + '" y="' + (midF + 4) + '" font-size="10" text-anchor="end" fill="' + mute + '">−6%</text>' +
+        var legend =
+          '<text x="' + lx + '" y="' + (midF + 4) + '" font-size="10" text-anchor="end" fill="' + P.mute + '">−6%</text>' +
           '<rect x="' + (lx + 6) + '" y="' + (midF - 4) + '" width="120" height="8" rx="2" fill="url(#hmlg)"/>' +
-          '<text x="' + (lx + 132) + '" y="' + (midF + 4) + '" font-size="10" fill="' + mute + '">+6%</text>' +
-          '<text x="' + (outW - pad) + '" y="' + (midF + 4) + '" font-size="11" letter-spacing="1" text-anchor="end" fill="' + mute + '">' + esc(asof) + '</text>' +
+          '<text x="' + (lx + 132) + '" y="' + (midF + 4) + '" font-size="10" fill="' + P.mute + '">+6%</text>';
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + outW + '" height="' + outH + '" viewBox="0 0 ' + outW + ' ' + outH + '">' +
+          '<defs><linearGradient id="hmlg"><stop offset="0" stop-color="#e5484d"/><stop offset="0.5" stop-color="#9aa3ab"/><stop offset="1" stop-color="#2e9e5b"/></linearGradient>' + wm.def + '</defs>' +
+          '<style>' + style + '</style>' +
+          '<rect width="' + outW + '" height="' + outH + '" fill="' + P.bg + '"/>' +
+          KC.brandHeader(P, outW, pad, headH, 'IDX MARKET HEATMAP' + (focus ? ' · ' + focus.toUpperCase() : '')) +
+          heat +
+          wm.rect(pad, headH, w, h) +
+          KC.brandFooter(P, outW, pad, fy, footH, legend, asof) +
           '</svg>';
-
-        var url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-        var img = new Image();
-        img.onload = function () {
-          var scale = 2, cv = document.createElement('canvas');
-          cv.width = outW * scale; cv.height = outH * scale;
-          var ctx = cv.getContext('2d');
-          ctx.setTransform(scale, 0, 0, scale, 0, 0);
-          ctx.drawImage(img, 0, 0);
-          URL.revokeObjectURL(url);
-          cv.toBlob(function (blob) {
-            var a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'klinik-heatmap-' + String((data && data.broker_date) || '').slice(0, 10) + '.png';
-            document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-            SHOT.disabled = false;
-          }, 'image/png');
-        };
-        img.onerror = function () { URL.revokeObjectURL(url); SHOT.disabled = false; };
-        img.src = url;
+        return KC.rasterize(svg, outW, outH, 2);
       });
     }
-    if (SHOT) SHOT.addEventListener('click', saveImage);
+    if (SHOT && window.KPCapture) {
+      KPCapture.attach(SHOT, {
+        make: captureBlob,
+        filename: function () { return 'klinik-heatmap-' + String((data && data.broker_date) || '').slice(0, 10) + '.png'; }
+      });
+    }
 
     // ---- sector drill-down ----
     var CRUMB = document.getElementById('hm-crumb'), HINT = document.getElementById('hm-hint');
@@ -1633,10 +1779,13 @@
       STRIP = document.getElementById('mv-strip'),
       LEADERS = document.getElementById('mv-leaders'), LAGGARDS = document.getElementById('mv-laggards'),
       SEARCH = document.getElementById('mv-search'), ASOF = document.getElementById('mp-asof'),
-      B1D = document.getElementById('mv-1d'), B5D = document.getElementById('mv-5d');
+      B1D = document.getElementById('mv-1d'), B5D = document.getElementById('mv-5d'),
+      MSHOT = document.getElementById('mv-shot');
   if (!STATUS || !GRID || !LEADERS || !LAGGARDS) return;
 
   var endDate = null, current = '1d', seq = 0;
+  // Latest index summary payload, kept for the PNG capture (strip + as-of date).
+  var lastIndex = null;
   // Last payload's rows, kept so sorting and filtering are pure re-renders —
   // no refetch, so a 5-minute-cached response isn't burned on a column click.
   var data = { leaders: [], laggards: [] };
@@ -1722,6 +1871,8 @@
   function render(j) {
     var ix = j.index || {};
     endDate = ix.end_date || endDate;
+    lastIndex = ix;
+    if (MSHOT) MSHOT.disabled = false; // there's something to capture now
     document.getElementById('mv-last').textContent = fmtNum(ix.end_close, 2);
     var net = document.getElementById('mv-net');
     net.textContent = sgn(ix.net_change, 2) + ' (' + sgn(ix.pct_change, 2) + '%)';
@@ -1772,6 +1923,86 @@
   if (B5D) B5D.addEventListener('click', function () { setActive(B5D); load('5d'); });
   if (SEARCH) SEARCH.addEventListener('input', paint);
   bindSort();
+
+  // Capture: the canonical top-30 board (server order, ignoring on-screen
+  // filter/sort) with the JCI strip, brand chrome, watermark and as-of date.
+  function captureBlob() {
+    var KC = window.KPCapture;
+    if (!KC || !lastIndex) return Promise.reject(new Error('no data'));
+    var P = KC.palette(), ix = lastIndex;
+    var lead = data.leaders.slice(0, 30), lag = data.laggards.slice(0, 30);
+    var pad = 36, headH = 76, stripH = 42, colHeadH = 30, thH = 24, rowH = 19, footH = 60;
+    var tableW = 482, gapW = 28, outW = pad * 2 + tableW * 2 + gapW;
+    var nRows = Math.max(lead.length, lag.length, 1);
+    var secY = headH + stripH, rowsY0 = secY + colHeadH + thH;
+    var fy = rowsY0 + nRows * rowH + 16, outH = fy + footH;
+    var wm = KC.watermark('mv-wm');
+
+    var nc = ix.net_change < 0 ? P.fear : P.accent;
+    var strip = '<text x="' + pad + '" y="' + (headH + stripH / 2 + 4.5) + '" font-size="13" fill="' + P.dim + '">' +
+      '<tspan>JCI </tspan><tspan fill="' + P.text + '" font-weight="600">' + fmtNum(ix.end_close, 2) + '</tspan>' +
+      '<tspan dx="14" fill="' + nc + '" font-weight="600">' + sgn(ix.net_change, 2) + ' (' + sgn(ix.pct_change, 2) + '%)</tspan>' +
+      '<tspan dx="18" fill="' + P.accent + '">▲ ' + ix.up + '</tspan>' +
+      '<tspan dx="10" fill="' + P.fear + '">▼ ' + ix.down + '</tspan>' +
+      '<tspan dx="10" fill="' + P.mute + '">— ' + ix.unchanged + '</tspan></text>';
+
+    function table(x0, head, headCol, rows) {
+      var thY = secY + colHeadH + 16;
+      var xr = { rank: x0 + 20, tk: x0 + 32, price: x0 + 236, chg: x0 + 318, pts: x0 + 400, idx: x0 + tableW };
+      var s = '<text x="' + x0 + '" y="' + (secY + 20) + '" font-size="11" font-weight="600" letter-spacing="1.5" fill="' + headCol + '">' + head + ' · TOP ' + rows.length + '</text>' +
+        '<text x="' + xr.rank + '" y="' + thY + '" font-size="10" letter-spacing="1" text-anchor="end" fill="' + P.mute + '">#</text>' +
+        '<text x="' + xr.tk + '" y="' + thY + '" font-size="10" letter-spacing="1" fill="' + P.mute + '">TICKER</text>';
+      [['PRICE', xr.price], ['%CHG', xr.chg], ['PTS', xr.pts], ['%IDX MV', xr.idx]].forEach(function (c) {
+        s += '<text x="' + c[1] + '" y="' + thY + '" font-size="10" letter-spacing="1" text-anchor="end" fill="' + P.mute + '">' + c[0] + '</text>';
+      });
+      s += '<line x1="' + x0 + '" y1="' + rowsY0 + '" x2="' + (x0 + tableW) + '" y2="' + rowsY0 + '" stroke="' + P.line2 + '"/>';
+      if (!rows.length) {
+        return s + '<text x="' + (x0 + tableW / 2) + '" y="' + (rowsY0 + 24) + '" font-size="11" text-anchor="middle" fill="' + P.mute + '">NO DATA</text>';
+      }
+      for (var i = 0; i < rows.length; i++) {
+        var m = rows[i], y = rowsY0 + i * rowH + 13.5, cc = m.points < 0 ? P.fear : P.accent;
+        var idxTxt = m.pct_idx_mv == null ? '—' : sgn(m.pct_idx_mv, 2) + '%';
+        s += '<text x="' + xr.rank + '" y="' + y + '" font-size="11" text-anchor="end" fill="' + P.mute + '">' + (i + 1) + '</text>' +
+          '<text x="' + xr.tk + '" y="' + y + '" font-size="12" font-weight="600" fill="' + P.text + '">' + KC.esc(m.ticker) + '</text>' +
+          '<text x="' + xr.price + '" y="' + y + '" font-size="12" text-anchor="end" fill="' + P.dim + '">' + fmtNum(m.close, 0) + '</text>' +
+          '<text x="' + xr.chg + '" y="' + y + '" font-size="12" text-anchor="end" fill="' + cc + '">' + sgn(m.pct_change, 2) + '%</text>' +
+          '<text x="' + xr.pts + '" y="' + y + '" font-size="12" text-anchor="end" fill="' + cc + '">' + sgn(m.points, 3) + '</text>' +
+          '<text x="' + xr.idx + '" y="' + y + '" font-size="12" text-anchor="end" fill="' + cc + '">' + idxTxt + '</text>';
+        if (i < rows.length - 1) s += '<line x1="' + x0 + '" y1="' + (rowsY0 + (i + 1) * rowH) + '" x2="' + (x0 + tableW) + '" y2="' + (rowsY0 + (i + 1) * rowH) + '" stroke="' + P.line + '"/>';
+      }
+      return s;
+    }
+
+    var range = current === '1d' ? '1D' : '5D';
+    var dateTxt = (current === '1d'
+      ? 'AS OF ' + fmtDay(ix.end_date)
+      : fmtDay(ix.base_date) + ' → ' + fmtDay(ix.end_date)).toUpperCase();
+
+    return KC.fontFace().then(function (ff) {
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + outW + '" height="' + outH + '" viewBox="0 0 ' + outW + ' ' + outH + '">' +
+        '<defs>' + wm.def + '</defs>' +
+        '<style>' + ff + "text{font-family:'JetBrains Mono',ui-monospace,monospace;}" + '</style>' +
+        '<rect width="' + outW + '" height="' + outH + '" fill="' + P.bg + '"/>' +
+        KC.brandHeader(P, outW, pad, headH, 'IDX MOVERS · JCI POINT CONTRIBUTION · ' + range) +
+        '<line x1="' + pad + '" y1="' + headH + '" x2="' + (outW - pad) + '" y2="' + headH + '" stroke="' + P.surface + '"/>' +
+        strip +
+        table(pad, 'LEADERS', P.accent, lead) +
+        table(pad + tableW + gapW, 'LAGGARDS', P.fear, lag) +
+        '<line x1="' + (pad + tableW + gapW / 2) + '" y1="' + secY + '" x2="' + (pad + tableW + gapW / 2) + '" y2="' + (fy - 16) + '" stroke="' + P.line + '"/>' +
+        wm.rect(pad, headH, outW - pad * 2, fy - headH) +
+        KC.brandFooter(P, outW, pad, fy, footH, '', dateTxt) +
+        '</svg>';
+      return KC.rasterize(svg, outW, outH, 2);
+    });
+  }
+  if (MSHOT && window.KPCapture) {
+    KPCapture.attach(MSHOT, {
+      make: captureBlob,
+      filename: function () {
+        return 'klinik-idx-movers-' + current + '-' + String((lastIndex && lastIndex.end_date) || '').slice(0, 10) + '.png';
+      }
+    });
+  }
 
   load('1d');
 })();
