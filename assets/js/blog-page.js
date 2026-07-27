@@ -164,7 +164,8 @@
       var normalize = function (value) { return String(value || '').replace(/\s+/g, ' ').trim(); };
       if (firstBlock && /^(P|H1|H2)$/.test(firstBlock.tagName) && normalize(firstBlock.textContent) === normalize(post.title)) firstBlock.remove();
     }
-    if (post.thumbnail_url) {
+    $('article-hero').classList.toggle('article-hero--document', isDocument);
+    if (post.thumbnail_url && !isDocument) {
       $('article-thumbnail').src = post.thumbnail_url;
       $('article-thumbnail').alt = post.title;
       $('article-thumbnail').hidden = false;

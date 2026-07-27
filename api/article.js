@@ -148,7 +148,7 @@ function renderArticle(post) {
     author: { '@type': 'Organization', name: 'Klinik Penyesalan', url: SITE_URL },
     publisher: { '@type': 'Organization', name: 'Klinik Penyesalan', url: SITE_URL },
   }).replace(/</g, '\\u003c');
-  const thumbnail = post.thumbnail_url
+  const thumbnail = post.thumbnail_url && !isDocument
     ? `<img class="article-thumbnail" src="${escapeHtml(post.thumbnail_url)}" alt="${escapeHtml(post.title)}">`
     : '';
   const contentBlock = isDocument
@@ -160,7 +160,7 @@ function renderArticle(post) {
         <a class="back" href="/blog.html">← ALL ARTICLES</a>
         <p class="eyebrow">KLINIK NEWSLETTER</p>
       </div>
-      <header class="article-hero">
+      <header class="article-hero${isDocument ? ' article-hero--document' : ''}">
         ${thumbnail}
         <div class="article-hero-shade"></div>
         <div class="article-head">

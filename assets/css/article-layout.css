@@ -153,6 +153,16 @@
   margin-left: 4px;
 }
 
+.article-hero--document {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(59, 188, 180, .2), transparent 36%),
+    linear-gradient(145deg, #1e252c, #101418);
+}
+
+.article-hero--document .article-hero-shade {
+  background: linear-gradient(180deg, rgba(7, 10, 13, 0) 55%, rgba(7, 10, 13, .45) 100%);
+}
+
 .article-content--document {
   max-width: none;
   padding-bottom: 90px;
