@@ -1789,9 +1789,9 @@
   // Last payload's rows, kept so sorting and filtering are pure re-renders —
   // no refetch, so a 5-minute-cached response isn't burned on a column click.
   var data = { leaders: [], laggards: [] };
-  // null = each side keeps the server's own ordering (leaders by points down,
-  // laggards by points up). A header click pins one key across both tables.
-  var sortKey = null, sortDir = 'desc';
+  // Each table gets its own independent sort state. A column click on Leaders
+  // doesn't affect Laggards, and vice versa.
+  var sortKey = { leaders: null, laggards: null }, sortDir = { leaders: 'desc', laggards: 'desc' };
 
   function fmtNum(n, d) {
     return (+n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -1822,23 +1822,24 @@
     tbody.innerHTML = html || '<tr><td colspan="6" class="mv-empty">No matching tickers.</td></tr>';
   }
 
-  function view(rows) {
+  function view(rows, table) {
     var q = (SEARCH && SEARCH.value || '').trim().toUpperCase();
     var out = q ? rows.filter(function (m) { return m.ticker.indexOf(q) !== -1; }) : rows.slice();
-    if (!sortKey) return out;
-    var dir = sortDir === 'asc' ? 1 : -1;
+    var key = sortKey[table], dir = sortDir[table];
+    if (!key) return out;
+    var mul = dir === 'asc' ? 1 : -1;
     return out.sort(function (a, b) {
-      var x = a[sortKey], y = b[sortKey];
-      if (sortKey === 'ticker') return x < y ? -dir : x > y ? dir : 0;
+      var x = a[key], y = b[key];
+      if (key === 'ticker') return x < y ? -mul : x > y ? mul : 0;
       // Nulls (pct_idx_mv on a flat index) sink to the bottom either direction.
       if (x == null) return 1;
       if (y == null) return -1;
-      return (x - y) * dir;
+      return (x - y) * mul;
     });
   }
 
   function paint() {
-    var lead = view(data.leaders), lag = view(data.laggards);
+    var lead = view(data.leaders, 'leaders'), lag = view(data.laggards, 'laggards');
     fill(LEADERS, lead);
     fill(LAGGARDS, lag);
     setCount('mv-leaders-count', lead.length, data.leaders.length);
@@ -1854,14 +1855,21 @@
     var heads = document.querySelectorAll('.mv-table th[data-sort]');
     for (var i = 0; i < heads.length; i++) {
       heads[i].addEventListener('click', function () {
+        // Determine which table — the <th> sits inside a table inside a .mv-col;
+        // the first .mv-col in the parent is leaders, second is laggards.
+        var col = this.closest('.mv-col');
+        var table = col && col.previousElementSibling ? 'laggards' : 'leaders';
         var key = this.getAttribute('data-sort');
         // Same column toggles direction; a new column starts descending
         // (tickers ascending — A first is what alphabetical means).
-        if (sortKey === key) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
-        else { sortKey = key; sortDir = key === 'ticker' ? 'asc' : 'desc'; }
-        for (var k = 0; k < heads.length; k++) {
-          heads[k].classList.remove('asc', 'desc');
-          if (heads[k].getAttribute('data-sort') === sortKey) heads[k].classList.add(sortDir);
+        if (sortKey[table] === key) sortDir[table] = sortDir[table] === 'desc' ? 'asc' : 'desc';
+        else { sortKey[table] = key; sortDir[table] = key === 'ticker' ? 'asc' : 'desc'; }
+        // Remove indicator arrows only from THIS table's headers.
+        var thisTable = this.closest('table');
+        var thisHeads = thisTable ? thisTable.querySelectorAll('th[data-sort]') : [];
+        for (var k = 0; k < thisHeads.length; k++) {
+          thisHeads[k].classList.remove('asc', 'desc');
+          if (thisHeads[k].getAttribute('data-sort') === sortKey[table]) thisHeads[k].classList.add(sortDir[table]);
         }
         paint();
       });
