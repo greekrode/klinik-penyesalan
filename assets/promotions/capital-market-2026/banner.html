@@ -1,0 +1,91 @@
+<!-- Review-only component. Native dialog blocks background interaction. -->
+<div class="kp-campaign" lang="id">
+  <div class="kp-promo-return" id="kp-promo-return" hidden>
+    <span>CAPITAL MARKET MASTERCLASS · OKTOBER 2026</span>
+    <button id="kp-promo-reopen" type="button">Lihat masterclass <span aria-hidden="true">↗</span></button>
+  </div>
+  <dialog class="kp-promo" id="kp-masterclass" aria-modal="true" aria-labelledby="kp-promo-title">
+    <div class="kp-promo__topline">
+      <span class="kp-promo__announcement"><span aria-hidden="true"></span> PENDAFTARAN DIBUKA</span>
+      <button class="kp-promo__close" type="button" aria-label="Tutup promosi masterclass" title="Tutup promosi" autofocus><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="kp-promo__body">
+      <div class="kp-promo__copy">
+        <div class="kp-promo__intro">
+        <p class="kp-promo__edition">KLINIK PENYESALAN PRESENTS</p>
+        <h2 id="kp-promo-title">Capital Market<span>Masterclass.</span></h2>
+        <p class="kp-promo__series">SERIES 2026 <span aria-hidden="true">/</span> 4 HARI · 6 EXPERT</p>
+        <p class="kp-promo__description">Navigating Market Dynamics:<br><span>Macro Trends, Fundamentals, Execution.</span></p>
+        <div class="kp-promo__schedule">
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg>3–24 Oktober 2026</span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>Online via Zoom</span>
+        </div>
+        </div>
+        <section class="kp-promo__pricing" aria-label="Harga pendaftaran">
+          <dl class="kp-promo__offers">
+            <div class="kp-promo__offer kp-promo__offer--featured" id="kp-promo-individual">
+              <dt><span id="kp-promo-individual-label">Individual · Early bird</span><small id="kp-promo-deadline">s.d. 18 September 2026</small></dt>
+              <dd>
+                <span class="kp-promo__regular" id="kp-promo-individual-regular"><span class="kp-promo__sr">Harga reguler individual </span><s>Rp1.588.000</s></span>
+                <strong id="kp-promo-individual-price">Rp1.388.000</strong>
+                <small class="kp-promo__saving" id="kp-promo-individual-saving">Hemat Rp200.000</small>
+              </dd>
+            </div>
+            <div class="kp-promo__offer" id="kp-promo-student">
+              <dt><span>Mahasiswa</span><small>Wajib E-mail/KTM</small></dt>
+              <dd>
+                <span class="kp-promo__regular"><span class="kp-promo__sr">Dibanding harga reguler individual </span><s>Rp1.588.000</s></span>
+                <strong>Rp788.000</strong>
+                <small class="kp-promo__saving">Hemat Rp800.000</small>
+              </dd>
+            </div>
+          </dl>
+          <p class="kp-promo__price-note">Mahasiswa dibandingkan dengan harga reguler individual.</p>
+          <button class="kp-promo__group-toggle" id="kp-promo-group-toggle" type="button" aria-expanded="false" aria-controls="kp-promo-group-panel">Harga grup · 5 orang <span aria-hidden="true">+</span></button>
+          <div id="kp-promo-group-panel" hidden>
+            <dl>
+              <div class="kp-promo__offer" id="kp-promo-group">
+              <dt><span id="kp-promo-group-label">Grup · Early bird</span><small>5 orang · daftar via admin</small></dt>
+              <dd>
+                <span class="kp-promo__regular" id="kp-promo-group-regular"><span class="kp-promo__sr">Harga reguler grup untuk 5 orang </span><s>Rp7.000.000</s></span>
+                <strong id="kp-promo-group-price">Rp6.000.000</strong>
+                <small class="kp-promo__saving" id="kp-promo-group-saving">Hemat Rp1.000.000</small>
+              </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+      </div>
+      <section class="kp-promo__experts" aria-label="Pembicara masterclass" aria-roledescription="carousel">
+        <div class="kp-promo__gallery-head"><span>MEET YOUR EXPERTS</span><span id="kp-promo-page" aria-live="polite">01 / 02</span></div>
+        <div class="kp-promo__carousel" id="kp-promo-carousel">
+          <div class="kp-promo__track" id="kp-promo-track">
+            <div class="kp-promo__slide" role="group" aria-roledescription="slide" aria-label="1 dari 2 · Hari 1 dan 2">
+              <img src="/assets/promotions/capital-market-2026/experts-days-1-2.png" width="2560" height="2560" alt="Hari 1, 3 Oktober: Rudiyanto — Market Liquidity Dynamics. Hari 2, 10 Oktober: Keharyapatihan — Macroeconomics &amp; Country Risk; Ridwan Gunawan — Corporate Valuation &amp; Credit Risk." decoding="async" draggable="false">
+            </div>
+            <div class="kp-promo__slide" role="group" aria-roledescription="slide" aria-label="2 dari 2 · Hari 3 dan 4" aria-hidden="true" inert>
+              <img src="/assets/promotions/capital-market-2026/experts-days-3-4.png" width="2560" height="2560" alt="Hari 3, 17 Oktober: Almer Sad, CFA — Global Capital Flows, Macro Policy &amp; Deal Valuation. Hari 4, 24 Oktober: Alrich Paskalis T. — Market Structure &amp; Technical Execution; Abida Massi, FMVA — Building Equity Research." decoding="async" draggable="false">
+            </div>
+          </div>
+          <button class="kp-promo__carousel-arrow kp-promo__carousel-arrow--prev" id="kp-promo-prev" type="button" aria-label="Slide pembicara sebelumnya"><span aria-hidden="true">‹</span></button>
+          <button class="kp-promo__carousel-arrow kp-promo__carousel-arrow--next" id="kp-promo-next" type="button" aria-label="Slide pembicara berikutnya"><span aria-hidden="true">›</span></button>
+        </div>
+        <div class="kp-promo__gallery-footer">
+          <p id="kp-promo-slide-caption">Hari 1 &amp; 2 <span>3 &amp; 10 Oktober 2026</span></p>
+          <div class="kp-promo__dots" role="group" aria-label="Pilih slide pembicara">
+            <button type="button" data-promo-page="0" aria-label="Slide 1: Hari 1 dan 2" aria-pressed="true"><span></span></button>
+            <button type="button" data-promo-page="1" aria-label="Slide 2: Hari 3 dan 4" aria-pressed="false"><span></span></button>
+          </div>
+        </div>
+        <p class="kp-promo__gallery-note">Geser atau gunakan panah untuk melihat semua pembicara.</p>
+      </section>
+    </div>
+    <div class="kp-promo__footer">
+      <p>Belajar langsung dari para expert.<span>Kuota terbatas · Materi workshop interaktif</span></p>
+      <div class="kp-promo__actions">
+        <a class="kp-promo__contact" id="kp-promo-admin" href="https://wa.me/6281315254075" target="_blank" rel="noopener" title="Admin · 0813 1525 4075">Hubungi Admin <span aria-hidden="true">↗</span><span class="kp-promo__sr"> · 0813 1525 4075 (buka WhatsApp di tab baru)</span></a>
+        <a class="kp-promo__cta" id="kp-promo-checkout" href="https://lynk.id/klinikpenyesalan?utm_source=klinikpenyesalan&amp;utm_medium=website&amp;utm_campaign=capital_market_masterclass_2026&amp;utm_content=first_visit_modal" target="_blank" rel="noopener">Daftar <span aria-hidden="true">↗</span><span class="kp-promo__sr"> masterclass (buka Lynk di tab baru)</span></a>
+      </div>
+    </div>
+  </dialog>
+</div>
