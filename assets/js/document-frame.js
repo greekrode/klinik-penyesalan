@@ -10,6 +10,11 @@
       var theme = document.documentElement.getAttribute('data-theme') || 'dark';
       inner.documentElement.setAttribute('data-theme', theme);
       inner.querySelectorAll('[data-theme]').forEach(function (element) { element.setAttribute('data-theme', theme); });
+      if (window.KPNewsletterProcessor) {
+        var titleField = document.getElementById('title');
+        var title = frame.getAttribute('data-article-title') || (titleField && titleField.value) || frame.title;
+        window.KPNewsletterProcessor.processDocument(inner, { title: title });
+      }
     } catch (_error) {}
   }
 

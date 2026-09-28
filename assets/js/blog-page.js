@@ -148,6 +148,7 @@
       var frame = document.createElement('iframe');
       frame.className = 'article-document';
       frame.setAttribute('sandbox', 'allow-same-origin allow-popups allow-popups-to-escape-sandbox');
+      frame.setAttribute('data-article-title', post.title);
       frame.title = post.title;
       frame.srcdoc = prepareDocument(post.content_html);
       $('article-content').classList.add('article-content--document');
@@ -163,6 +164,7 @@
       var firstBlock = $('article-content').firstElementChild;
       var normalize = function (value) { return String(value || '').replace(/\s+/g, ' ').trim(); };
       if (firstBlock && /^(P|H1|H2)$/.test(firstBlock.tagName) && normalize(firstBlock.textContent) === normalize(post.title)) firstBlock.remove();
+      if (window.KPNewsletterProcessor) window.KPNewsletterProcessor.processContainer($('article-content'));
     }
     $('article-hero').classList.toggle('article-hero--document', isDocument);
     if (post.thumbnail_url && !isDocument) {

@@ -95,6 +95,7 @@ function pageShell({ title, description, canonical, image, robots, body, article
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <link rel="stylesheet" href="/assets/css/blog.css">
   <link rel="stylesheet" href="/assets/css/article-layout.css">
+  <link rel="stylesheet" href="/assets/css/newsletter-content.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/fontawesome.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/brands.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/solid.min.css">
@@ -110,6 +111,7 @@ function pageShell({ title, description, canonical, image, robots, body, article
   </header>
   ${body}
   <footer><div class="wrap">© 2026 KLINIK PENYESALAN · NOT INVESTMENT ADVICE</div></footer>
+  <script src="/assets/js/newsletter-processor.js"></script>
   <script src="/assets/js/document-frame.js"></script>
   <script src="/assets/js/article-page.js"></script>
 </body>
@@ -152,7 +154,7 @@ function renderArticle(post) {
     ? `<img class="article-thumbnail" src="${escapeHtml(post.thumbnail_url)}" alt="${escapeHtml(post.title)}">`
     : '';
   const contentBlock = isDocument
-    ? `<div class="article-content article-content--document"><iframe class="article-document" srcdoc="${escapeHtml(content)}" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" title="${escapeHtml(post.title)}"></iframe></div>`
+    ? `<div class="article-content article-content--document"><iframe class="article-document" data-article-title="${escapeHtml(post.title)}" srcdoc="${escapeHtml(content)}" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" title="${escapeHtml(post.title)}"></iframe></div>`
     : `<div class="article-content">${content}</div>`;
   const body = `<main class="wrap">
     <article>
