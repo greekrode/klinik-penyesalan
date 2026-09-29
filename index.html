@@ -1793,6 +1793,8 @@
   // eodSeq drops stale EOD responses; liveGen retires a replaced stream's handlers.
   var eodSeq = 0, liveGen = 0;
   var es = null, retryTimer = null, fallbackTimer = null, retryMs = 2000;
+  // Epoch ms until which the server said the session is settled (EOD backfilled).
+  var settledUntil = 0;
   // Last payload's rows, kept so sorting and filtering are pure re-renders —
   // no refetch, so a 5-minute-cached response isn't burned on a column click.
   var data = { leaders: [], laggards: [] };
@@ -1974,6 +1976,15 @@
   function startLive() {
     stopLive();
     if (current !== '1d' || document.hidden) return;
+    // Settled: the session's EOD prices are in, so the EOD board IS today's
+    // final board. Hold the stream until the server's resume_at (next
+    // pre-open); tab focus doesn't bring it back early.
+    var settledWait = settledUntil - Date.now();
+    if (settledWait > 0) {
+      if (shown !== 'eod') fallBackToEOD();
+      retryTimer = setTimeout(startLive, settledWait);
+      return;
+    }
     var gen = liveGen;
     // No board within 8s (slow start, blocked stream): show EOD meanwhile.
     fallbackTimer = setTimeout(function () { if (gen === liveGen && !shown) fallBackToEOD(); }, 8000);
@@ -1993,6 +2004,13 @@
         // The server keeps retrying and pushes a board once live is back.
         src.addEventListener('unavailable', function () { if (gen === liveGen) fallBackToEOD(); });
         src.addEventListener('end', function () { if (gen === liveGen) startLive(); }); // hourly recycle
+        src.addEventListener('settled', function (e) {
+          if (gen !== liveGen) return;
+          var resumeAt = 0;
+          try { resumeAt = Number(JSON.parse(e.data).resume_at) || 0; } catch (err) { /* still settled */ }
+          settledUntil = Math.max(resumeAt * 1000, Date.now() + 60000);
+          startLive(); // closes this stream, shows EOD, waits for resume_at
+        });
         src.onerror = function () {
           if (gen !== liveGen) return;
           // A dropped connection keeps the last live board on screen.
