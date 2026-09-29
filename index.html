@@ -1793,6 +1793,9 @@
   // eodSeq drops stale EOD responses; liveGen retires a replaced stream's handlers.
   var eodSeq = 0, liveGen = 0;
   var es = null, retryTimer = null, fallbackTimer = null, retryMs = 2000;
+  // Epoch ms until which the server said the session is settled (EOD backfilled),
+  // and that session's date: the 1D EOD board is then fetched pinned to it.
+  var settledUntil = 0, settledSession = null;
   // Last payload's rows, kept so sorting and filtering are pure re-renders —
   // no refetch, so a 5-minute-cached response isn't burned on a column click.
   var data = { leaders: [], laggards: [] };
@@ -1923,6 +1926,11 @@
   function loadEOD(range) {
     var my = ++eodSeq;
     var qs = '?limit=50'; // server cap — the whole leader/laggard board, scrolled
+    if (range === '1d' && settledSession) {
+      // Pinned to the settled session: a new cache key, so neither the proxy's
+      // nor the API's 5-minute cache can serve the pre-backfill board.
+      qs += '&from=' + settledSession + '&to=' + settledSession;
+    }
     if (range === '5d' && eodEnd) {
       // 5 trading sessions: from = end − 6 calendar days; the server snaps the
       // baseline to the last close before `from`.
@@ -1974,6 +1982,15 @@
   function startLive() {
     stopLive();
     if (current !== '1d' || document.hidden) return;
+    // Settled: the session's EOD prices are in, so the EOD board IS today's
+    // final board. Hold the stream until the server's resume_at (next
+    // pre-open); tab focus doesn't bring it back early.
+    var settledWait = settledUntil - Date.now();
+    if (settledWait > 0) {
+      if (shown !== 'eod') fallBackToEOD();
+      retryTimer = setTimeout(startLive, settledWait);
+      return;
+    }
     var gen = liveGen;
     // No board within 8s (slow start, blocked stream): show EOD meanwhile.
     fallbackTimer = setTimeout(function () { if (gen === liveGen && !shown) fallBackToEOD(); }, 8000);
@@ -1987,12 +2004,28 @@
         src.addEventListener('board', function (e) {
           if (gen !== liveGen) return;
           retryMs = 2000;
+          settledSession = null; // a live session again: fallbacks read the latest EOD
           // A board that cannot be shown must not leave 1D stuck in 'live'.
           try { render(JSON.parse(e.data)); } catch (err) { fallBackToEOD(); }
         });
         // The server keeps retrying and pushes a board once live is back.
         src.addEventListener('unavailable', function () { if (gen === liveGen) fallBackToEOD(); });
         src.addEventListener('end', function () { if (gen === liveGen) startLive(); }); // hourly recycle
+        src.addEventListener('settled', function (e) {
+          if (gen !== liveGen) return;
+          var resumeAt = 0, session = null;
+          try {
+            var p = JSON.parse(e.data);
+            resumeAt = Number(p.resume_at) || 0;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(p.session)) session = p.session;
+          } catch (err) { /* still settled */ }
+          settledUntil = Math.max(resumeAt * 1000, Date.now() + 60000);
+          settledSession = session;
+          // Whatever 1D shows (live, or an EOD fallback from before the
+          // backfill) is replaced by the session's final EOD board.
+          shown = null;
+          startLive(); // closes this stream, shows EOD, waits for resume_at
+        });
         src.onerror = function () {
           if (gen !== liveGen) return;
           // A dropped connection keeps the last live board on screen.
