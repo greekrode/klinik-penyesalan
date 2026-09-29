@@ -1977,15 +1977,18 @@
     var gen = liveGen;
     // No board within 8s (slow start, blocked stream): show EOD meanwhile.
     fallbackTimer = setTimeout(function () { if (gen === liveGen && !shown) fallBackToEOD(); }, 8000);
-    fetch('/api/idx-movers-stream', { headers: { accept: 'application/json' }, cache: 'no-store' })
-      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    // Bounded: a mint that never answers must still reach reconnectLive().
+    var ac = new AbortController(), abortT = setTimeout(function () { ac.abort(); }, 10000);
+    fetch('/api/idx-movers-stream', { headers: { accept: 'application/json' }, cache: 'no-store', signal: ac.signal })
+      .then(function (r) { clearTimeout(abortT); return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function (t) {
         if (gen !== liveGen) return;
         var src = es = new EventSource(t.url);
         src.addEventListener('board', function (e) {
           if (gen !== liveGen) return;
           retryMs = 2000;
-          render(JSON.parse(e.data));
+          // A board that cannot be shown must not leave 1D stuck in 'live'.
+          try { render(JSON.parse(e.data)); } catch (err) { fallBackToEOD(); }
         });
         // The server keeps retrying and pushes a board once live is back.
         src.addEventListener('unavailable', function () { if (gen === liveGen) fallBackToEOD(); });
@@ -1998,6 +2001,7 @@
         };
       })
       .catch(function () {
+        clearTimeout(abortT);
         if (gen !== liveGen) return;
         if (shown !== 'live') fallBackToEOD();
         reconnectLive();
