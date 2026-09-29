@@ -4,7 +4,7 @@
 // route and we add the token header upstream.
 //
 // Env vars (Project → Settings → Environment Variables):
-//   IDX_MOVERS_API_BASE_URL / HEATMAP_API_BASE_URL = https://stock.kangritel.com
+//   IDX_MOVERS_API_BASE_URL / HEATMAP_API_BASE_URL = https://be.arthara.id
 //   IDX_MOVERS_TOKEN / HEATMAP_TOKEN / HEATMAP_API_TOKEN = <scoped token>
 //   (the movers endpoint accepts the heatmap token upstream, so an existing
 //    heatmap deployment needs zero new env vars)
@@ -33,6 +33,10 @@ export default async function handler(request) {
   }
   const limit = inUrl.searchParams.get("limit");
   if (limit && /^\d{1,2}$/.test(limit)) qs.set("limit", limit);
+  // live=true: the current session from live quotes (upstream rejects it
+  // alongside from/to with a 400, passed through below).
+  const live = inUrl.searchParams.get("live") === "true";
+  if (live) qs.set("live", "true");
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
 
   const controller = new AbortController();
@@ -53,8 +57,11 @@ export default async function handler(request) {
       status: 200,
       headers: {
         "content-type": "application/json",
-        // EOD data + 5-min upstream cache: mirror the heatmap proxy caching.
-        "cache-control": "public, s-maxage=300, stale-while-revalidate=600",
+        // Live: 10s upstream cache, the page polls every 15s. EOD: 5-min
+        // upstream cache, mirror the heatmap proxy caching.
+        "cache-control": live
+          ? "public, s-maxage=10, stale-while-revalidate=20"
+          : "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
   } catch (e) {

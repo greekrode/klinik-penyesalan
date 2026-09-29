@@ -1783,9 +1783,16 @@
       MSHOT = document.getElementById('mv-shot');
   if (!STATUS || !GRID || !LEADERS || !LAGGARDS) return;
 
-  var endDate = null, current = '1d', seq = 0;
+  // eodEnd: the last CLOSED session — the 5D window's end. On a live board
+  // that is its base_date (end_date is the session still trading).
+  var eodEnd = null, current = '1d', seq = 0;
   // Latest index summary payload, kept for the PNG capture (strip + as-of date).
-  var lastIndex = null;
+  var lastIndex = null, lastLive = null;
+  // 1D polls the live board while the tab is visible; the backend and the
+  // proxy each cache it for 10s.
+  var LIVE_POLL_MS = 15000;
+  // A user-triggered load in flight: polls wait, so one can't supersede it.
+  var busy = false;
   // Last payload's rows, kept so sorting and filtering are pure re-renders —
   // no refetch, so a 5-minute-cached response isn't burned on a column click.
   var data = { leaders: [], laggards: [] };
@@ -1804,6 +1811,17 @@
     var p = String(iso || '').slice(0, 10).split('-');
     if (p.length < 3) return '';
     return (+p[2] < 10 ? '0' : '') + (+p[2]) + ' ' + (MON[(+p[1]) - 1] || p[1]) + ' ' + p[0];
+  }
+
+  // unix seconds -> "11:47" in WIB
+  function fmtTimeWIB(unix) {
+    return new Date(unix * 1000).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
+  function dateLabel(ix) {
+    if (current !== '1d') return fmtDay(ix.base_date) + ' → ' + fmtDay(ix.end_date);
+    if (lastLive) return 'LIVE · ' + fmtTimeWIB(lastLive.as_of) + ' WIB · ' + fmtDay(ix.end_date);
+    return 'AS OF ' + fmtDay(ix.end_date);
   }
 
   function rowHtml(m, i) {
@@ -1878,7 +1896,8 @@
 
   function render(j) {
     var ix = j.index || {};
-    endDate = ix.end_date || endDate;
+    lastLive = j.live || null;
+    eodEnd = (lastLive ? ix.base_date : ix.end_date) || eodEnd;
     lastIndex = ix;
     if (MSHOT) MSHOT.disabled = false; // there's something to capture now
     document.getElementById('mv-last').textContent = fmtNum(ix.end_close, 2);
@@ -1888,9 +1907,7 @@
     document.getElementById('mv-up').textContent = '▲ ' + ix.up;
     document.getElementById('mv-down').textContent = '▼ ' + ix.down;
     document.getElementById('mv-unch').textContent = '— ' + ix.unchanged;
-    if (ASOF) ASOF.textContent = current === '1d'
-      ? 'AS OF ' + fmtDay(ix.end_date)
-      : fmtDay(ix.base_date) + ' → ' + fmtDay(ix.end_date);
+    if (ASOF) ASOF.textContent = dateLabel(ix);
     data.leaders = j.leaders || [];
     data.laggards = j.laggards || [];
     paint();
@@ -1900,26 +1917,48 @@
 
   function fail(msg) { STATUS.textContent = msg; STATUS.style.display = ''; GRID.hidden = true; STRIP.hidden = true; }
 
-  function load(range) {
+  // 1D asks for the live board and falls back to the EOD board when live is
+  // unavailable (503: feed down, or the prior close not ingested yet).
+  // `silent` is a background poll: no loading text, and a failed poll keeps
+  // the board on screen instead of blanking it.
+  function load(range, silent, eodFallback) {
     current = range;
     var mySeq = ++seq;
     var qs = '?limit=50'; // server cap — the whole leader/laggard board, scrolled
-    if (range === '5d' && endDate) {
+    var live = range === '1d' && !eodFallback;
+    if (live) qs += '&live=true';
+    if (range === '5d' && eodEnd) {
       // 5 trading sessions: from = end − 6 calendar days; the server snaps the
       // baseline to the last close before `from`.
-      var d = new Date(endDate + 'T00:00:00Z');
+      var d = new Date(eodEnd + 'T00:00:00Z');
       d.setUTCDate(d.getUTCDate() - 6);
-      qs += '&from=' + d.toISOString().slice(0, 10) + '&to=' + endDate;
+      qs += '&from=' + d.toISOString().slice(0, 10) + '&to=' + eodEnd;
     }
-    STATUS.textContent = 'Loading index movers…'; STATUS.style.display = '';
+    if (!silent) { busy = true; STATUS.textContent = 'Loading index movers…'; STATUS.style.display = ''; }
     fetch('/api/idx-movers' + qs, { headers: { accept: 'application/json' } })
       .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function (j) {
         if (mySeq !== seq) return;
-        if (j && j.index) render(j); else fail('Movers data unavailable.');
+        if (!j || !j.index) return Promise.reject('empty');
+        render(j);
+        if (!silent) busy = false;
       })
-      .catch(function () { if (mySeq === seq) fail('Movers data unavailable.'); });
+      .catch(function () {
+        if (mySeq !== seq || silent) return;
+        busy = false;
+        if (live) load('1d', false, true);
+        else fail('Movers data unavailable.');
+      });
   }
+
+  // On 1D, polls always ask for live: a board that fell back to EOD switches
+  // back by itself once live recovers (a failed poll leaves it as is).
+  function poll() {
+    if (current === '1d' && !busy && !document.hidden) load('1d', true);
+  }
+  setInterval(poll, LIVE_POLL_MS);
+  // Coming back to a stale tab: refresh at once instead of waiting a tick.
+  document.addEventListener('visibilitychange', poll);
 
   function setActive(btn) {
     B1D.classList.toggle('active', btn === B1D);
@@ -1982,9 +2021,7 @@
     }
 
     var range = current === '1d' ? '1D' : '5D';
-    var dateTxt = (current === '1d'
-      ? 'AS OF ' + fmtDay(ix.end_date)
-      : fmtDay(ix.base_date) + ' → ' + fmtDay(ix.end_date)).toUpperCase();
+    var dateTxt = dateLabel(ix).toUpperCase();
 
     return KC.fontFace().then(function (ff) {
       var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + outW + '" height="' + outH + '" viewBox="0 0 ' + outW + ' ' + outH + '">' +
