@@ -1785,14 +1785,14 @@
 
   // eodEnd: the last CLOSED session — the 5D window's end. On a live board
   // that is its base_date (end_date is the session still trading).
-  var eodEnd = null, current = '1d', seq = 0;
+  var eodEnd = null, current = '1d';
   // Latest index summary payload, kept for the PNG capture (strip + as-of date).
   var lastIndex = null, lastLive = null;
-  // 1D polls the live board while the tab is visible; the backend and the
-  // proxy each cache it for 10s.
-  var LIVE_POLL_MS = 15000;
-  // A user-triggered load in flight: polls wait, so one can't supersede it.
-  var busy = false;
+  // What 1D currently shows: 'live' (pushed board), 'eod' (fallback) or null.
+  var shown = null;
+  // eodSeq drops stale EOD responses; liveGen retires a replaced stream's handlers.
+  var eodSeq = 0, liveGen = 0;
+  var es = null, retryTimer = null, fallbackTimer = null, retryMs = 2000;
   // Last payload's rows, kept so sorting and filtering are pure re-renders —
   // no refetch, so a 5-minute-cached response isn't burned on a column click.
   var data = { leaders: [], laggards: [] };
@@ -1813,9 +1813,9 @@
     return (+p[2] < 10 ? '0' : '') + (+p[2]) + ' ' + (MON[(+p[1]) - 1] || p[1]) + ' ' + p[0];
   }
 
-  // unix seconds -> "11:47" in WIB
+  // unix seconds -> "11:47:05" in WIB
   function fmtTimeWIB(unix) {
-    return new Date(unix * 1000).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+    return new Date(unix * 1000).toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   }
 
   function dateLabel(ix) {
@@ -1897,6 +1897,7 @@
   function render(j) {
     var ix = j.index || {};
     lastLive = j.live || null;
+    shown = lastLive ? 'live' : 'eod';
     eodEnd = (lastLive ? ix.base_date : ix.end_date) || eodEnd;
     lastIndex = ix;
     if (MSHOT) MSHOT.disabled = false; // there's something to capture now
@@ -1917,16 +1918,11 @@
 
   function fail(msg) { STATUS.textContent = msg; STATUS.style.display = ''; GRID.hidden = true; STRIP.hidden = true; }
 
-  // 1D asks for the live board and falls back to the EOD board when live is
-  // unavailable (503: feed down, or the prior close not ingested yet).
-  // `silent` is a background poll: no loading text, and a failed poll keeps
-  // the board on screen instead of blanking it.
-  function load(range, silent, eodFallback) {
-    current = range;
-    var mySeq = ++seq;
+  // EOD board: 5D always; 1D only until the live board arrives, or while the
+  // server reports live unavailable (feed down, prior close not ingested yet).
+  function loadEOD(range) {
+    var my = ++eodSeq;
     var qs = '?limit=50'; // server cap — the whole leader/laggard board, scrolled
-    var live = range === '1d' && !eodFallback;
-    if (live) qs += '&live=true';
     if (range === '5d' && eodEnd) {
       // 5 trading sessions: from = end − 6 calendar days; the server snaps the
       // baseline to the last close before `from`.
@@ -1934,31 +1930,93 @@
       d.setUTCDate(d.getUTCDate() - 6);
       qs += '&from=' + d.toISOString().slice(0, 10) + '&to=' + eodEnd;
     }
-    if (!silent) { busy = true; STATUS.textContent = 'Loading index movers…'; STATUS.style.display = ''; }
     fetch('/api/idx-movers' + qs, { headers: { accept: 'application/json' } })
       .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function (j) {
-        if (mySeq !== seq) return;
+        if (my !== eodSeq || current !== range) return;
+        if (range === '1d' && shown === 'live') return; // live won the race
         if (!j || !j.index) return Promise.reject('empty');
         render(j);
-        if (!silent) busy = false;
       })
       .catch(function () {
-        if (mySeq !== seq || silent) return;
-        busy = false;
-        if (live) load('1d', false, true);
-        else fail('Movers data unavailable.');
+        if (my !== eodSeq || current !== range) return;
+        if (!(range === '1d' && shown)) fail('Movers data unavailable.');
       });
   }
 
-  // On 1D, polls always ask for live: a board that fell back to EOD switches
-  // back by itself once live recovers (a failed poll leaves it as is).
-  function poll() {
-    if (current === '1d' && !busy && !document.hidden) load('1d', true);
+  // 1D is PUSHED: Server-Sent Events straight from the Arthara API. The site's
+  // /api/idx-movers-stream only mints a 60s ticket for it (the token never
+  // reaches the browser). Nothing here polls: boards arrive when they change.
+  function stopLive() {
+    liveGen++;
+    clearTimeout(retryTimer); retryTimer = null;
+    clearTimeout(fallbackTimer); fallbackTimer = null;
+    if (es) { es.close(); es = null; }
   }
-  setInterval(poll, LIVE_POLL_MS);
-  // Coming back to a stale tab: refresh at once instead of waiting a tick.
-  document.addEventListener('visibilitychange', poll);
+
+  // Reconnect with a FRESH ticket after a backoff: EventSource's own retry
+  // would reuse the expired one.
+  function reconnectLive() {
+    stopLive();
+    if (current !== '1d' || document.hidden) return;
+    retryTimer = setTimeout(startLive, retryMs);
+    retryMs = Math.min(retryMs * 2, 60000);
+  }
+
+  // Leaves the live state first, so the EOD response renders (a live board
+  // arriving meanwhile still wins: it sets shown back to 'live').
+  function fallBackToEOD() {
+    if (shown === 'eod') return;
+    shown = null;
+    loadEOD('1d');
+  }
+
+  function startLive() {
+    stopLive();
+    if (current !== '1d' || document.hidden) return;
+    var gen = liveGen;
+    // No board within 8s (slow start, blocked stream): show EOD meanwhile.
+    fallbackTimer = setTimeout(function () { if (gen === liveGen && !shown) fallBackToEOD(); }, 8000);
+    fetch('/api/idx-movers-stream', { headers: { accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (t) {
+        if (gen !== liveGen) return;
+        var src = es = new EventSource(t.url);
+        src.addEventListener('board', function (e) {
+          if (gen !== liveGen) return;
+          retryMs = 2000;
+          render(JSON.parse(e.data));
+        });
+        // The server keeps retrying and pushes a board once live is back.
+        src.addEventListener('unavailable', function () { if (gen === liveGen) fallBackToEOD(); });
+        src.addEventListener('end', function () { if (gen === liveGen) startLive(); }); // hourly recycle
+        src.onerror = function () {
+          if (gen !== liveGen) return;
+          // A dropped connection keeps the last live board on screen.
+          if (shown !== 'live') fallBackToEOD();
+          reconnectLive();
+        };
+      })
+      .catch(function () {
+        if (gen !== liveGen) return;
+        if (shown !== 'live') fallBackToEOD();
+        reconnectLive();
+      });
+  }
+
+  function setRange(range) {
+    current = range;
+    shown = null;
+    STATUS.textContent = 'Loading index movers…'; STATUS.style.display = '';
+    if (range === '1d') { retryMs = 2000; startLive(); }
+    else { stopLive(); loadEOD(range); }
+  }
+
+  // A hidden tab holds no stream; coming back reconnects at once.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopLive();
+    else if (current === '1d') { retryMs = 2000; startLive(); }
+  });
 
   function setActive(btn) {
     B1D.classList.toggle('active', btn === B1D);
@@ -1966,8 +2024,8 @@
     B1D.setAttribute('aria-selected', btn === B1D ? 'true' : 'false');
     B5D.setAttribute('aria-selected', btn === B5D ? 'true' : 'false');
   }
-  if (B1D) B1D.addEventListener('click', function () { setActive(B1D); load('1d'); });
-  if (B5D) B5D.addEventListener('click', function () { setActive(B5D); load('5d'); });
+  if (B1D) B1D.addEventListener('click', function () { setActive(B1D); setRange('1d'); });
+  if (B5D) B5D.addEventListener('click', function () { setActive(B5D); setRange('5d'); });
   if (SEARCH) SEARCH.addEventListener('input', paint);
   bindSort();
 
@@ -2049,7 +2107,7 @@
     });
   }
 
-  load('1d');
+  setRange('1d');
 })();
 </script>
 

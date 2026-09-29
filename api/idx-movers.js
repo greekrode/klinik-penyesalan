@@ -33,10 +33,6 @@ export default async function handler(request) {
   }
   const limit = inUrl.searchParams.get("limit");
   if (limit && /^\d{1,2}$/.test(limit)) qs.set("limit", limit);
-  // live=true: the current session from live quotes (upstream rejects it
-  // alongside from/to with a 400, passed through below).
-  const live = inUrl.searchParams.get("live") === "true";
-  if (live) qs.set("live", "true");
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
 
   const controller = new AbortController();
@@ -57,11 +53,9 @@ export default async function handler(request) {
       status: 200,
       headers: {
         "content-type": "application/json",
-        // Live: 10s upstream cache, the page polls every 15s. EOD: 5-min
-        // upstream cache, mirror the heatmap proxy caching.
-        "cache-control": live
-          ? "public, s-maxage=10, stale-while-revalidate=20"
-          : "public, s-maxage=300, stale-while-revalidate=600",
+        // EOD data + 5-min upstream cache: mirror the heatmap proxy caching.
+        // (The live board is pushed; see api/idx-movers-stream.js.)
+        "cache-control": "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
   } catch (e) {
