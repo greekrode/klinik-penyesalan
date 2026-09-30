@@ -1,6 +1,6 @@
 // Vercel Edge Function — mints the capability ticket for the live IDX movers
 // stream. The board itself is PUSHED: the page opens Server-Sent Events
-// straight on the Arthara API (GET /api/idx-movers/stream?ticket=…), so no
+// straight on the Arthara API (GET /internal/idx-movers/stream?ticket=…), so no
 // function here stays open per viewer and nothing polls.
 //
 // The ticket is the Arthara capability-ticket format:
@@ -48,7 +48,7 @@ export default async function handler() {
   }
 
   const ticket = await mintTicket(token, Math.floor(Date.now() / 1000));
-  const url = `${base.replace(/\/+$/, "")}/api/idx-movers/stream?ticket=${encodeURIComponent(ticket)}`;
+  const url = `${base.replace(/\/+$/, "")}/internal/idx-movers/stream?ticket=${encodeURIComponent(ticket)}`;
   return new Response(JSON.stringify({ url }), {
     status: 200,
     headers: { "content-type": "application/json", "cache-control": "no-store" },

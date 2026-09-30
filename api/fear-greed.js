@@ -23,7 +23,7 @@ export default async function handler() {
   }
 
   try {
-    const upstream = await fetch(`${base}/api/fear-greed`, {
+    const upstream = await fetch(`${base}/internal/fear-greed`, {
       headers: { "X-Internal-Token": token },
     });
     return new Response(await upstream.text(), {
