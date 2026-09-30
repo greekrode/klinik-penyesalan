@@ -29,7 +29,7 @@ export default async function handler() {
   const timer = setTimeout(function () { controller.abort(); }, 8000);
   try {
     // ?spark=1 → include each ticker's recent-close sparkline history.
-    const res = await fetch(`${base}/api/heatmap?spark=1`, {
+    const res = await fetch(`${base}/internal/heatmap?spark=1`, {
       headers: { "X-Internal-Token": token },
       signal: controller.signal,
     });

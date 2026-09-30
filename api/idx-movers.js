@@ -38,7 +38,7 @@ export default async function handler(request) {
   const controller = new AbortController();
   const timer = setTimeout(function () { controller.abort(); }, 8000);
   try {
-    const res = await fetch(`${base}/api/idx-movers${suffix}`, {
+    const res = await fetch(`${base}/internal/idx-movers${suffix}`, {
       headers: { "X-Internal-Token": token },
       signal: controller.signal,
     });
