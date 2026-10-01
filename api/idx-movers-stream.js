@@ -4,7 +4,8 @@
 // function here stays open per viewer and nothing polls.
 //
 // The ticket is the Arthara capability-ticket format:
-//   base64url(JSON {act, exp}) + "." + base64url(HMAC-SHA256(key, payloadB64))
+//   base64url(JSON {act, exp, jti}) + "." + base64url(HMAC-SHA256(key, payloadB64))
+// (jti = 16 random bytes, lowercase hex, so the server can enforce single use)
 // signed with the scoped movers/heatmap token this project already holds for
 // api/idx-movers.js. The token never reaches the browser; the ticket opens
 // only the movers stream (act "idx_movers_stream") and only for 60 seconds —
@@ -20,9 +21,18 @@ function b64url(bytes) {
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+function randomJti() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  let s = "";
+  for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(16).padStart(2, "0");
+  return s;
+}
+
 export async function mintTicket(token, nowSeconds) {
   const payload = b64url(
-    new TextEncoder().encode(JSON.stringify({ act: "idx_movers_stream", exp: nowSeconds + TICKET_TTL_SECONDS })),
+    new TextEncoder().encode(
+      JSON.stringify({ act: "idx_movers_stream", exp: nowSeconds + TICKET_TTL_SECONDS, jti: randomJti() }),
+    ),
   );
   const key = await crypto.subtle.importKey(
     "raw",
