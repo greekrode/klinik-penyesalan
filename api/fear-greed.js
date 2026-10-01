@@ -6,7 +6,7 @@
 // The page calls this same-origin route, which adds the token header upstream.
 //
 // Required env vars (Project → Settings → Environment Variables):
-//   ALPHAFLOW_API_BASE = https://stock.klinikpenyesalan.com
+//   ALPHAFLOW_API_BASE = https://be.arthara.id
 //   FEAR_GREED_TOKEN   = <64-char internal token>   (never NEXT_PUBLIC_*)
 
 export const config = { runtime: "edge" };
