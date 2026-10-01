@@ -6,7 +6,7 @@
 // The page calls this same-origin route, which adds the token header upstream.
 //
 // Required env vars (Project → Settings → Environment Variables):
-//   HEATMAP_API_BASE_URL = https://stock.kangritel.com
+//   HEATMAP_API_BASE_URL = https://be.arthara.id
 //   HEATMAP_TOKEN        = <internal token>   (never NEXT_PUBLIC_*)
 //                          (HEATMAP_API_TOKEN is also accepted, for compatibility)
 
