@@ -879,6 +879,7 @@
             <button class="mv-range-btn active" id="mv-1d" type="button" role="tab" aria-selected="true">1D</button>
             <button class="mv-range-btn" id="mv-5d" type="button" role="tab" aria-selected="false">5D</button>
           </span>
+          <button class="mv-range-btn" id="mv-hsc" type="button" aria-pressed="false" title="Exclude High Shareholding Concentration (HSC) stocks from the JCI decomposition">EXCLUDE HSC</button>
           <input class="mv-search" id="mv-search" type="search" placeholder="FILTER TICKER" aria-label="Filter movers by ticker" autocomplete="off">
           <span class="hm-tools kp-shot-wrap">
             <button class="hm-tool" id="mv-shot" type="button" title="Capture image" aria-label="Capture movers image" aria-haspopup="menu" aria-expanded="false" disabled>
@@ -891,6 +892,7 @@
         <span>JCI <b id="mv-last">—</b></span>
         <span class="mv-net" id="mv-net">—</span>
         <span class="mv-updown"><span class="up" id="mv-up">—</span>&nbsp;&nbsp;<span class="down" id="mv-down">—</span>&nbsp;&nbsp;<span id="mv-unch">—</span></span>
+        <span class="mv-exhsc" id="mv-exhsc" hidden></span>
       </div>
       <div class="hm-status" id="mv-status">Loading index movers…</div>
       <div class="mv-grid" id="mv-grid" hidden>
@@ -1780,7 +1782,8 @@
       LEADERS = document.getElementById('mv-leaders'), LAGGARDS = document.getElementById('mv-laggards'),
       SEARCH = document.getElementById('mv-search'), ASOF = document.getElementById('mp-asof'),
       B1D = document.getElementById('mv-1d'), B5D = document.getElementById('mv-5d'),
-      MSHOT = document.getElementById('mv-shot');
+      MSHOT = document.getElementById('mv-shot'), BHSC = document.getElementById('mv-hsc'),
+      EXHSC = document.getElementById('mv-exhsc');
   if (!STATUS || !GRID || !LEADERS || !LAGGARDS) return;
 
   // eodEnd: the last CLOSED session — the 5D window's end. On a live board
@@ -1790,6 +1793,13 @@
   var lastIndex = null, lastLive = null;
   // What 1D currently shows: 'live' (pushed board), 'eod' (fallback) or null.
   var shown = null;
+  // Exclude HSC stocks: asks the API for the ex-HSC board (exclude_hsc=1).
+  var exHSC = false;
+  try { exHSC = localStorage.getItem('kp-movers-exhsc') === '1'; } catch (e) { /* private mode */ }
+  var lastExHSC = null; // the shown board's ex_hsc block (null: HSC included)
+  function hscLabel() {
+    return lastExHSC ? 'HSC EXCLUDED (' + lastExHSC.excluded + ')' : 'HSC INCLUDED';
+  }
   // eodSeq drops stale EOD responses; liveGen retires a replaced stream's handlers.
   var eodSeq = 0, liveGen = 0;
   var es = null, retryTimer = null, fallbackTimer = null, retryMs = 2000;
@@ -1898,11 +1908,21 @@
   }
 
   function render(j) {
+    // A board of the other mode (a response from before the toggle) is not shown.
+    if (!!j.ex_hsc !== exHSC) return;
     var ix = j.index || {};
     lastLive = j.live || null;
+    lastExHSC = j.ex_hsc || null;
     shown = lastLive ? 'live' : 'eod';
     eodEnd = (lastLive ? ix.base_date : ix.end_date) || eodEnd;
     lastIndex = ix;
+    if (EXHSC) {
+      EXHSC.hidden = !lastExHSC;
+      if (lastExHSC) {
+        EXHSC.innerHTML = 'EX-HSC <span class="' + (lastExHSC.net_change < 0 ? 'down' : 'up') + '">' +
+          sgn(lastExHSC.net_change, 2) + ' (' + sgn(lastExHSC.pct_change, 2) + '%)</span> · ' + lastExHSC.excluded + ' HSC excluded';
+      }
+    }
     if (MSHOT) MSHOT.disabled = false; // there's something to capture now
     document.getElementById('mv-last').textContent = fmtNum(ix.end_close, 2);
     var net = document.getElementById('mv-net');
@@ -1926,6 +1946,7 @@
   function loadEOD(range) {
     var my = ++eodSeq;
     var qs = '?limit=50'; // server cap — the whole leader/laggard board, scrolled
+    if (exHSC) qs += '&exclude_hsc=1';
     if (range === '1d' && settledSession) {
       // Pinned to the settled session: a new cache key, so neither the proxy's
       // nor the API's 5-minute cache can serve the pre-backfill board.
@@ -1996,7 +2017,7 @@
     fallbackTimer = setTimeout(function () { if (gen === liveGen && !shown) fallBackToEOD(); }, 8000);
     // Bounded: a mint that never answers must still reach reconnectLive().
     var ac = new AbortController(), abortT = setTimeout(function () { ac.abort(); }, 10000);
-    fetch('/api/idx-movers-stream', { headers: { accept: 'application/json' }, cache: 'no-store', signal: ac.signal })
+    fetch('/api/idx-movers-stream' + (exHSC ? '?exclude_hsc=1' : ''), { headers: { accept: 'application/json' }, cache: 'no-store', signal: ac.signal })
       .then(function (r) { clearTimeout(abortT); return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function (t) {
         if (gen !== liveGen) return;
@@ -2064,6 +2085,18 @@
   if (B1D) B1D.addEventListener('click', function () { setActive(B1D); setRange('1d'); });
   if (B5D) B5D.addEventListener('click', function () { setActive(B5D); setRange('5d'); });
   if (SEARCH) SEARCH.addEventListener('input', paint);
+  function paintHSC() {
+    if (!BHSC) return;
+    BHSC.classList.toggle('active', exHSC);
+    BHSC.setAttribute('aria-pressed', exHSC ? 'true' : 'false');
+  }
+  paintHSC();
+  if (BHSC) BHSC.addEventListener('click', function () {
+    exHSC = !exHSC;
+    try { localStorage.setItem('kp-movers-exhsc', exHSC ? '1' : '0'); } catch (e) { /* private mode */ }
+    paintHSC();
+    setRange(current);
+  });
   bindSort();
 
   // Capture: the canonical top-30 board (server order, ignoring on-screen
@@ -2086,7 +2119,10 @@
       '<tspan dx="14" fill="' + nc + '" font-weight="600">' + sgn(ix.net_change, 2) + ' (' + sgn(ix.pct_change, 2) + '%)</tspan>' +
       '<tspan dx="18" fill="' + P.accent + '">▲ ' + ix.up + '</tspan>' +
       '<tspan dx="10" fill="' + P.fear + '">▼ ' + ix.down + '</tspan>' +
-      '<tspan dx="10" fill="' + P.mute + '">— ' + ix.unchanged + '</tspan></text>';
+      '<tspan dx="10" fill="' + P.mute + '">— ' + ix.unchanged + '</tspan>' +
+      (lastExHSC ? '<tspan dx="18" fill="' + P.dim + '">EX-HSC </tspan><tspan fill="' + (lastExHSC.net_change < 0 ? P.fear : P.accent) + '" font-weight="600">' +
+        sgn(lastExHSC.net_change, 2) + ' (' + sgn(lastExHSC.pct_change, 2) + '%)</tspan>' : '') +
+      '</text>';
 
     function table(x0, head, headCol, rows) {
       var thY = secY + colHeadH + 16;
@@ -2123,7 +2159,7 @@
         '<defs>' + wm.def + '</defs>' +
         '<style>' + ff + "text{font-family:'JetBrains Mono',ui-monospace,monospace;}" + '</style>' +
         '<rect width="' + outW + '" height="' + outH + '" fill="' + P.bg + '"/>' +
-        KC.brandHeader(P, outW, pad, headH, 'IDX MOVERS · JCI POINT CONTRIBUTION · ' + range) +
+        KC.brandHeader(P, outW, pad, headH, 'IDX MOVERS · JCI POINT CONTRIBUTION · ' + range + ' · ' + hscLabel()) +
         '<line x1="' + pad + '" y1="' + headH + '" x2="' + (outW - pad) + '" y2="' + headH + '" stroke="' + P.surface + '"/>' +
         strip +
         table(pad, 'LEADERS', P.accent, lead) +
@@ -2139,7 +2175,7 @@
     KPCapture.attach(MSHOT, {
       make: captureBlob,
       filename: function () {
-        return 'klinik-idx-movers-' + current + '-' + String((lastIndex && lastIndex.end_date) || '').slice(0, 10) + '.png';
+        return 'klinik-idx-movers-' + current + (exHSC ? '-exhsc' : '') + '-' + String((lastIndex && lastIndex.end_date) || '').slice(0, 10) + '.png';
       }
     });
   }

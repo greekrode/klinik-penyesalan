@@ -33,6 +33,7 @@ export default async function handler(request) {
   }
   const limit = inUrl.searchParams.get("limit");
   if (limit && /^\d{1,2}$/.test(limit)) qs.set("limit", limit);
+  if (inUrl.searchParams.get("exclude_hsc") === "1") qs.set("exclude_hsc", "1");
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
 
   const controller = new AbortController();

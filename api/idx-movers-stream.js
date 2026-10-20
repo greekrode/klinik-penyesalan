@@ -45,7 +45,7 @@ export async function mintTicket(token, nowSeconds) {
   return payload + "." + b64url(mac);
 }
 
-export default async function handler() {
+export default async function handler(request) {
   const base = process.env.IDX_MOVERS_API_BASE_URL || process.env.HEATMAP_API_BASE_URL;
   const token =
     process.env.IDX_MOVERS_TOKEN || process.env.HEATMAP_TOKEN || process.env.HEATMAP_API_TOKEN;
@@ -58,7 +58,9 @@ export default async function handler() {
   }
 
   const ticket = await mintTicket(token, Math.floor(Date.now() / 1000));
-  const url = `${base.replace(/\/+$/, "")}/internal/idx-movers/stream?ticket=${encodeURIComponent(ticket)}`;
+  // exclude_hsc=1: the board without High Shareholding Concentration stocks.
+  const exHSC = request && new URL(request.url).searchParams.get("exclude_hsc") === "1";
+  const url = `${base.replace(/\/+$/, "")}/internal/idx-movers/stream?ticket=${encodeURIComponent(ticket)}${exHSC ? "&exclude_hsc=1" : ""}`;
   return new Response(JSON.stringify({ url }), {
     status: 200,
     headers: { "content-type": "application/json", "cache-control": "no-store" },
