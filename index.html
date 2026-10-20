@@ -2097,6 +2097,11 @@
     exHSC = !exHSC;
     try { localStorage.setItem('kp-movers-exhsc', exHSC ? '1' : '0'); } catch (e) { /* private mode */ }
     paintHSC();
+    // The old mode's board and pending EOD answer are gone: capture waits for
+    // a board of the new mode.
+    eodSeq++;
+    lastIndex = null;
+    if (MSHOT) MSHOT.disabled = true;
     setRange(current);
   });
   bindSort();
