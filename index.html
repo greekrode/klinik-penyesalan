@@ -1908,8 +1908,10 @@
   }
 
   function render(j) {
-    // A board of the other mode (a response from before the toggle) is not shown.
-    if (!!j.ex_hsc !== exHSC) return;
+    // A board of the other mode (a response from before the toggle) is not
+    // shown; an all-in board answering an ex-HSC request means the API lacks it.
+    if (exHSC && !j.ex_hsc) { fail('Exclude HSC is not available yet.'); return; }
+    if (!exHSC && j.ex_hsc) return;
     var ix = j.index || {};
     lastLive = j.live || null;
     lastExHSC = j.ex_hsc || null;
@@ -2175,7 +2177,7 @@
     KPCapture.attach(MSHOT, {
       make: captureBlob,
       filename: function () {
-        return 'klinik-idx-movers-' + current + (exHSC ? '-exhsc' : '') + '-' + String((lastIndex && lastIndex.end_date) || '').slice(0, 10) + '.png';
+        return 'klinik-idx-movers-' + current + (lastExHSC ? '-exhsc' : '') + '-' + String((lastIndex && lastIndex.end_date) || '').slice(0, 10) + '.png';
       }
     });
   }
